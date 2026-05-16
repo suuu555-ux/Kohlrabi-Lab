@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Kohlrabi-Lab | 大頭菜走勢預測</title>
     
+    <!-- PWA 與 iOS WebApp 設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Kohlrabi-Lab">
+    
+    <!-- Favicon 與 iOS 圖示 (曹賣) -->
     <link rel="icon" type="image/jpeg" href="https://image01.seesaawiki.jp/a/o/acnh-zh-game-info/6UP7vFYazP.jpeg">
     <link rel="apple-touch-icon" href="https://image01.seesaawiki.jp/a/o/acnh-zh-game-info/6UP7vFYazP.jpeg">
     
@@ -20,6 +23,8 @@
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .modal-enter { animation: fadeIn 0.2s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .pattern-bar { transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .best-cell { @apply ring-4 ring-emerald-500/30 border-emerald-500 bg-emerald-50 !important; }
     </style>
 </head>
 <body class="min-h-screen pb-24">
@@ -36,15 +41,16 @@
         </button>
     </header>
 
-    <main class="max-w-md mx-auto px-4 space-y-6">
+    <main class="max-w-md mx-auto px-4 mt-6 space-y-6">
+        <!-- 基礎設定區 -->
         <section class="bg-white rounded-[2rem] p-6 card-shadow border border-slate-100 space-y-5">
             <div class="flex items-center justify-between">
                 <label class="text-sm font-bold text-slate-500">週日買入價格</label>
-                <input type="number" id="buyPrice" placeholder="100" oninput="calculate()" class="w-24 text-right text-2xl font-black text-emerald-600 border-b-2 border-slate-100 focus:border-emerald-500 outline-none bg-transparent">
+                <input type="number" id="buyPrice" inputmode="numeric" placeholder="100" oninput="calculate()" class="w-24 text-right text-2xl font-black text-emerald-600 border-b-2 border-slate-100 focus:border-emerald-500 outline-none bg-transparent">
             </div>
             <div class="flex items-center justify-between pt-2 border-t border-slate-50">
                 <label class="text-sm font-bold text-slate-500">上週走勢類型</label>
-                <select id="lastWeekPattern" onchange="calculate()" class="bg-slate-50 border-none rounded-xl px-3 py-2 text-sm font-bold">
+                <select id="lastWeekPattern" onchange="calculate()" class="bg-slate-50 border-none rounded-xl px-3 py-2 text-sm font-bold text-slate-700">
                     <option value="unknown">不確定</option>
                     <option value="fluctuating">波型</option>
                     <option value="large">三期型</option>
@@ -54,33 +60,54 @@
             </div>
         </section>
 
+        <!-- 即時診斷與策略區 -->
         <section id="adviceSection" class="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl space-y-6 hidden">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2 text-slate-400">
                     <i data-lucide="zap" class="w-4 h-4 text-yellow-400"></i>
                     <span class="text-[10px] font-bold uppercase tracking-widest">走勢診斷</span>
                 </div>
-                <span id="statusBadge" class="px-2 py-0.5 rounded text-[10px] font-black border">分析中</span>
+                <div class="flex items-center gap-2">
+                    <span id="confidenceLabel" class="hidden text-[8px] font-bold px-1.5 py-0.5 rounded-sm bg-white/10 text-slate-400">信心度：--</span>
+                    <span id="statusBadge" class="px-2 py-0.5 rounded text-[10px] font-black border">分析中</span>
+                </div>
             </div>
+            
             <div class="space-y-2">
-                <h3 id="mainAdvice" class="text-3xl font-black text-white">請繼續輸入數據</h3>
+                <h3 id="mainAdvice" class="text-3xl font-black text-white leading-tight">請輸入價格</h3>
                 <p id="subAdvice" class="text-sm text-slate-400 leading-relaxed font-medium">---</p>
             </div>
+
             <div class="grid grid-cols-2 gap-4 pt-6 border-t border-white/5">
                 <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
                     <p class="text-[9px] font-bold text-slate-500 uppercase mb-1">本週判定</p>
                     <p id="thisWeekPattern" class="text-base font-black text-emerald-400">---</p>
                 </div>
                 <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <p class="text-[9px] font-bold text-slate-500 uppercase mb-1">獲利機率</p>
-                    <p id="winRate" class="text-base font-black text-blue-400">---</p>
+                    <p id="targetLabel" class="text-[9px] font-bold text-slate-500 uppercase mb-1">預計巔峰</p>
+                    <p id="targetPrice" class="text-base font-black text-blue-400">---</p>
+                </div>
+            </div>
+
+            <!-- 下週預測區塊 -->
+            <div id="nextWeekForecast" class="pt-6 border-t border-white/5 space-y-4">
+                <div class="flex items-center gap-2 text-slate-400">
+                    <i data-lucide="crystal-ball" class="w-4 h-4 text-purple-400"></i>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">下週機率預報</span>
+                </div>
+                <div id="probBars" class="space-y-3"></div>
+                <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <p class="text-[9px] font-bold text-slate-500 uppercase mb-1">進場評估</p>
+                    <p id="nextWeekAdvice" class="text-xs text-slate-200 leading-relaxed">---</p>
                 </div>
             </div>
         </section>
 
+        <!-- 價格清單 -->
         <div id="priceGrid" class="space-y-3"></div>
     </main>
 
+    <!-- 重置彈窗 -->
     <div id="resetModal" class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm hidden">
         <div class="bg-white rounded-[2rem] w-full max-w-xs p-8 shadow-2xl modal-enter">
             <h3 class="text-xl font-black text-slate-800 text-center mb-2">確定重置數據？</h3>
@@ -108,9 +135,17 @@
                 const data = JSON.parse(saved);
                 document.getElementById('buyPrice').value = data.buyPrice;
                 document.getElementById('lastWeekPattern').value = data.lastWeekPattern;
-                data.history.forEach((val, i) => { document.getElementById(`p-${Math.floor(i/2)}-${i%2}`).value = val; });
+                data.history.forEach((val, i) => { 
+                    const input = document.getElementById(`p-${Math.floor(i/2)}-${i%2}`);
+                    if (input) input.value = val;
+                });
                 calculate();
             }
+        }
+
+        function getPeriodName(idx) {
+            if (idx < 0 || idx > 11) return "未知";
+            return `${DAYS[Math.floor(idx/2)]}${PERIODS[idx%2]}`;
         }
 
         function init() {
@@ -119,61 +154,97 @@
             DAYS.forEach((day, dIdx) => {
                 const row = document.createElement('div');
                 row.className = 'bg-white rounded-2xl p-4 flex items-center gap-4 border border-transparent shadow-sm';
-                row.innerHTML = `<div class="w-12 text-center font-black text-slate-400 text-sm border-r border-slate-50 pr-2">${day}</div><div class="flex-1 grid grid-cols-2 gap-4">${PERIODS.map((p, pIdx) => `<div class="relative"><span class="absolute -top-1 left-0 text-[8px] font-bold text-slate-300">${p}</span><input type="number" id="p-${dIdx}-${pIdx}" oninput="calculate()" placeholder="---" class="w-full pt-3 pb-1 bg-transparent border-b border-slate-50 text-center font-black text-lg text-slate-700 outline-none"></div>`).join('')}</div>`;
+                row.innerHTML = `<div class="w-12 text-center font-black text-slate-400 text-sm border-r border-slate-50 pr-2">${day}</div><div class="flex-1 grid grid-cols-2 gap-4">${PERIODS.map((p, pIdx) => `<div class="relative"><span class="absolute -top-1 left-0 text-[8px] font-bold text-slate-300 z-10">${p}</span><input type="number" id="p-${dIdx}-${pIdx}" inputmode="numeric" oninput="calculate()" placeholder="---" class="w-full pt-3 pb-1 bg-transparent border-b border-slate-100 text-center font-black text-lg text-slate-700 outline-none transition-all duration-300"></div>`).join('')}</div>`;
                 grid.appendChild(row);
             });
             lucide.createIcons();
             loadData();
         }
 
+        function updateNextWeekUI(currentPatternKey) {
+            const probs = PROB_MATRIX[currentPatternKey] || PROB_MATRIX['unknown'];
+            const container = document.getElementById('probBars');
+            const adviceText = document.getElementById('nextWeekAdvice');
+            container.innerHTML = '';
+            Object.entries(probs).forEach(([name, val]) => {
+                const row = document.createElement('div');
+                row.className = 'space-y-1';
+                row.innerHTML = `<div class="flex justify-between text-[10px] font-bold"><span class="text-slate-400">${name}</span><span class="text-white">${val}%</span></div><div class="w-full bg-white/10 h-1.5 rounded-full overflow-hidden"><div class="pattern-bar h-full bg-emerald-500" style="width: 0%"></div></div>`;
+                container.appendChild(row);
+                setTimeout(() => row.querySelector('.pattern-bar').style.width = val + '%', 100);
+            });
+            if (probs['三期型'] >= 40) adviceText.innerHTML = "下週有 <span class='text-emerald-400 font-bold'>極高機率</span> 出現大爆發，建議本週日全力進貨。";
+            else if (probs['三期型'] + probs['四期型'] >= 60) adviceText.innerHTML = "下週獲利機率高，建議正常規模進場。";
+            else if (probs['遞減型'] >= 20) adviceText.innerHTML = "下週出現遞減型風險稍高，建議保守進貨。";
+            else adviceText.innerHTML = "下週走勢較為平均，請根據自身鈴錢存量調整。";
+        }
+
         function calculate() {
-            const buy = parseInt(document.getElementById('buyPrice').value) || 100;
-            const lastPattern = document.getElementById('lastWeekPattern').value;
+            const buyInput = document.getElementById('buyPrice').value;
+            const buy = parseInt(buyInput) || 100;
+            const lastPatternKey = document.getElementById('lastWeekPattern').value;
             const history = [];
-            for(let d=0; d<6; d++) for(let p=0; p<2; p++) history.push(parseInt(document.getElementById(`p-${d}-${p}`).value));
-            
+            for(let d=0; d<6; d++) for(let p=0; p<2; p++) {
+                const input = document.getElementById(`p-${d}-${p}`);
+                input.classList.remove('best-cell');
+                history.push(parseInt(input.value));
+            }
             const valid = history.filter(v => !isNaN(v));
-            if (valid.length > 0) {
-                document.getElementById('adviceSection').classList.remove('hidden');
+            const adviceSection = document.getElementById('adviceSection');
+            const confLabel = document.getElementById('confidenceLabel');
+
+            if (valid.length > 0 || buyInput !== '' || lastPatternKey !== 'unknown') {
+                adviceSection.classList.remove('hidden');
                 const lastVal = valid[valid.length-1];
                 const currentIndex = history.lastIndexOf(lastVal);
-                const probs = PROB_MATRIX[lastPattern];
+                let detected = "偵測中", action = "等待數據", sub = "請觀察價格轉折。", badge = "border-slate-500 text-slate-500", target = "待判定", patternKey = "unknown", confidence = "";
                 
-                let detected = "偵測中", action = "等待數據", sub = "請觀察價格轉折。", badge = "border-slate-500 text-slate-500";
                 let spikeStart = -1;
                 for(let i=1; i<history.length; i++) if(!isNaN(history[i]) && !isNaN(history[i-1]) && history[i] > history[i-1]) { spikeStart = i; break; }
 
                 if (spikeStart !== -1) {
                     const duration = currentIndex - spikeStart + 1;
                     if (lastVal > buy * 2.0) {
-                        detected = "三期型";
-                        if (duration === 3) { action = "果斷賣出！"; sub = "巔峰已到！之後會暴跌。"; badge = "bg-red-500 border-red-500 text-white"; }
-                        else if (duration < 3) { action = "絕對等待"; sub = "巔峰預計在第3時段。"; badge = "bg-amber-500 border-amber-500 text-white"; }
+                        detected = "三期型"; patternKey = "large"; target = `${buy*2} ~ ${buy*6}`;
+                        const peakIdx = spikeStart + 2;
+                        const peakTime = getPeriodName(peakIdx);
+                        if (duration === 3) { action = "果斷賣出！"; sub = `這就是巔峰 (${peakTime})！之後會暴跌。`; badge = "bg-red-500 border-red-500 text-white"; confidence = "最高"; }
+                        else if (duration < 3) { action = "絕對等待"; sub = `正衝向三期巔峰，預計 <span class='text-emerald-400 font-bold'>${peakTime}</span> 最高。`; badge = "bg-amber-500 border-amber-500 text-white"; confidence = "高"; }
+                        if (peakIdx < 12) document.getElementById(`p-${Math.floor(peakIdx/2)}-${peakIdx%2}`).classList.add('best-cell');
                     } else if (duration >= 4 || lastVal > buy * 1.4) {
-                        detected = "四期型";
-                        if (duration === 4) { action = "現在賣出"; sub = "四期型頂點在第4時段。"; badge = "bg-emerald-500 border-emerald-500 text-white"; }
-                        else if (duration < 4) { action = "建議等待"; sub = "預期頂點在第4時段。"; badge = "bg-blue-400 border-blue-400 text-white"; }
+                        detected = "四期型"; patternKey = "small"; target = `${buy*1.4} ~ ${buy*2}`;
+                        const peakIdx = spikeStart + 3;
+                        const peakTime = getPeriodName(peakIdx);
+                        if (duration === 4) { action = "現在賣出"; sub = `四期巔峰就在此時 (${peakTime})，請儘速脫手。`; badge = "bg-emerald-500 border-emerald-500 text-white"; confidence = "最高"; }
+                        else if (duration < 4) { action = "建議等待"; sub = `預計巔峰於 <span class='text-blue-400 font-bold'>${peakTime}</span>，請觀察後續價格。`; badge = "bg-blue-400 border-blue-400 text-white"; confidence = "中"; }
+                        if (peakIdx < 12) document.getElementById(`p-${Math.floor(peakIdx/2)}-${peakIdx%2}`).classList.add('best-cell');
                     }
                 } else {
                     let dec = true;
-                    for(let i=1; i<valid.length; i++) if(valid[i] > valid[i-1]) dec = false;
-                    if (dec) { detected = "遞減型 (疑)"; if (currentIndex >= 6) { action = "考慮止損"; sub = "可能為遞減型，尋求朋友島支援。"; badge = "bg-red-600 border-red-600 text-white"; } }
-                    else { detected = "波型 (隨機)"; action = "見好就收"; sub = "利潤達1.2倍即可脫手。"; badge = "bg-indigo-500 border-indigo-500 text-white"; }
+                    if (valid.length > 1) { for(let i=1; i<valid.length; i++) if(valid[i] > valid[i-1]) dec = false; }
+                    if (dec && valid.length > 0) { 
+                        detected = "遞減型"; patternKey = "decreasing"; target = "持續下降";
+                        if (currentIndex >= 6) { action = "考慮止損"; sub = "週三下午後仍跌，極大機率為遞減型，尋求朋友島。"; badge = "bg-red-600 border-red-600 text-white"; confidence = "高"; } 
+                        else { action = "觀察轉折"; sub = "尚未偵測到上漲，請留意週三轉折。"; confidence = "中"; }
+                    } else if (valid.length > 0) { 
+                        detected = "波型"; patternKey = "fluctuating"; action = "見好就收"; sub = "隨機型波動較大，獲利超過1.2倍即可脫手。"; target = `${buy*1.1} ~ ${buy*1.4}`; badge = "bg-indigo-500 border-indigo-500 text-white"; confidence = "低";
+                    }
                 }
                 document.getElementById('thisWeekPattern').innerText = detected;
                 document.getElementById('mainAdvice').innerText = action;
-                document.getElementById('subAdvice').innerText = sub;
-                document.getElementById('statusBadge').innerText = "診斷完成";
+                document.getElementById('subAdvice').innerHTML = sub;
+                document.getElementById('targetPrice').innerText = target === "待判定" ? "---" : target + (target === "持續下降" ? "" : " 鈴錢");
+                document.getElementById('statusBadge').innerText = valid.length === 0 ? "預測模式" : "診斷完成";
                 document.getElementById('statusBadge').className = `px-2 py-0.5 rounded text-[10px] font-black border ${badge}`;
-                document.getElementById('winRate').innerText = `${probs['三期型'] + probs['四期型']}%`;
-            }
+                if (confidence) { confLabel.innerText = `信心度：${confidence}`; confLabel.classList.remove('hidden'); } else { confLabel.classList.add('hidden'); }
+                updateNextWeekUI(patternKey);
+            } else { adviceSection.classList.add('hidden'); }
             saveData();
         }
 
         function showResetModal() { document.getElementById('resetModal').classList.remove('hidden'); }
         function hideResetModal() { document.getElementById('resetModal').classList.add('hidden'); }
         function confirmReset() { localStorage.removeItem('turnipData'); location.reload(); }
-
         window.onload = init;
     </script>
 </body>
