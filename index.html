@@ -4,16 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Kohlrabi-Lab | 大頭菜走勢預測</title>
-    
-    <!-- PWA 與 iOS WebApp 設定 -->
+
+    <!--
+      [Claude Handover Spec - iOS PWA Metas]
+      - apple-mobile-web-app-capable: 啟用 iOS 全螢幕 WebApp 模式（隱藏 Safari 網址列與導覽列）
+      - status-bar-style: 設定狀態列樣式，配合背景色提供原生 App 感官
+      - apple-touch-icon: 儲存至桌面時顯示的高解析度曹賣圖標
+    -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Kohlrabi-Lab">
-    
-    <!-- Favicon 與 iOS 圖示 (曹賣) -->
+
     <link rel="icon" type="image/jpeg" href="https://image01.seesaawiki.jp/a/o/acnh-zh-game-info/6UP7vFYazP.jpeg">
     <link rel="apple-touch-icon" href="https://image01.seesaawiki.jp/a/o/acnh-zh-game-info/6UP7vFYazP.jpeg">
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -29,6 +33,7 @@
 </head>
 <body class="min-h-screen pb-24">
 
+    <!-- 頂部導航欄 (Sticky Header) -->
     <header class="max-w-md mx-auto px-6 py-6 flex justify-between items-center sticky top-0 bg-slate-50/90 backdrop-blur-md z-30">
         <div class="flex items-center gap-2">
             <div class="w-10 h-10 bg-emerald-600 rounded-2xl shadow-lg flex items-center justify-center text-white">
@@ -42,10 +47,11 @@
     </header>
 
     <main class="max-w-md mx-auto px-4 mt-6 space-y-6">
-        <!-- 基礎設定區 -->
+        <!-- 基礎設定區 (Sunday Purchase & Last Week Pattern) -->
         <section class="bg-white rounded-[2rem] p-6 card-shadow border border-slate-100 space-y-5">
             <div class="flex items-center justify-between">
                 <label class="text-sm font-bold text-slate-500">週日買入價格</label>
+                <!-- inputmode="numeric" 強制 iOS 彈出純數字鍵盤，解決行動端 UX 痛點 -->
                 <input type="number" id="buyPrice" inputmode="numeric" placeholder="100" oninput="calculate()" class="w-24 text-right text-2xl font-black text-emerald-600 border-b-2 border-slate-100 focus:border-emerald-500 outline-none bg-transparent">
             </div>
             <div class="flex items-center justify-between pt-2 border-t border-slate-50">
@@ -60,7 +66,7 @@
             </div>
         </section>
 
-        <!-- 即時診斷與策略區 -->
+        <!-- 即時診斷與策略區 (動態呈現) -->
         <section id="adviceSection" class="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl space-y-6 hidden">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2 text-slate-400">
@@ -72,7 +78,7 @@
                     <span id="statusBadge" class="px-2 py-0.5 rounded text-[10px] font-black border">分析中</span>
                 </div>
             </div>
-            
+
             <div class="space-y-2">
                 <h3 id="mainAdvice" class="text-3xl font-black text-white leading-tight">請輸入價格</h3>
                 <p id="subAdvice" class="text-sm text-slate-400 leading-relaxed font-medium">---</p>
@@ -89,11 +95,11 @@
                 </div>
             </div>
 
-            <!-- 下週預測區塊 -->
+            <!-- 下週預測區塊 (基於機率轉移矩陣的預測機制) -->
             <div id="nextWeekForecast" class="pt-6 border-t border-white/5 space-y-4">
                 <div class="flex items-center gap-2 text-slate-400">
                     <i data-lucide="crystal-ball" class="w-4 h-4 text-purple-400"></i>
-                    <span class="text-[10px] font-bold uppercase tracking-widest">下週機率預報</span>
+                    <span id="probHeaderLabel" class="text-[10px] font-bold uppercase tracking-widest">下週機率預報</span>
                 </div>
                 <div id="probBars" class="space-y-3"></div>
                 <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
@@ -103,11 +109,11 @@
             </div>
         </section>
 
-        <!-- 價格清單 -->
+        <!-- 週一至週六價格清單 (Dynamic JS Rendered Grid) -->
         <div id="priceGrid" class="space-y-3"></div>
     </main>
 
-    <!-- 重置彈窗 -->
+    <!-- 自定義重置確認彈窗 (Custom Alert Modal) -->
     <div id="resetModal" class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm hidden">
         <div class="bg-white rounded-[2rem] w-full max-w-xs p-8 shadow-2xl modal-enter">
             <h3 class="text-xl font-black text-slate-800 text-center mb-2">確定重置數據？</h3>
@@ -119,23 +125,66 @@
     </div>
 
     <script>
+        /**
+         * ==========================================
+         * CLAUDE HANDOVER & TECH SPECIFICATION
+         * ==========================================
+         * * 1. STATE & DATA LIFECYCLE (資料生命週期與儲存架構)
+         * - `saveData()`: 將 `buyPrice`, `lastWeekPattern`, 12時段的 `history` 陣列打包為 JSON，存入 LocalStorage。
+         * - `loadData()`: 頁面載入時讀取 LocalStorage，完成 Input 欄位回填並觸發 `calculate()` 執行即時預測。
+         * - `confirmReset()`: 完全移除 LocalStorage 並重載頁面以達到乾淨重置。
+         * * 2. ACNH MATHEMATICAL PREDICTION LOGIC (動森大頭菜底層演算法核心)
+         * - 波型分類特徵說明（已對照 mikebryant/ac-nh-turnip-prices 反編譯原始碼校正）：
+         * - 三期型 (Large Spike): 價格在某期反彈突破 2.0x 買入價。起漲時段 `spikeStart` 落在 index 3~9，
+         *   2.0x~6.0x 頂峰嚴格落於起漲後第 3 個時段 (即 `spikeStart + 2`，index 5~11)。
+         * - 四期型 (Small Spike): 起漲 `spikeStart` 落在 index 2~9，頂峰 (1.4x~2.0x) 落於起漲後第 4 個時段 (即 `spikeStart + 3`)。
+         * - 遞減型 (Decreasing): 價格穩定、持續衰退。
+         * - [核心過濾法] 週一上午 (monAM) 價格比例 X 必須落在 0.85 ~ 0.90 區間（取整後上界放寬 1/buy）。
+         * - [衰退率公式] 相鄰時段的跌幅，必須嚴格吻合：`前一期價格 - 當期價格 = 買入價的 3% ~ 5%`。
+         * - [關鍵] 三期型起漲段之前的「下跌段」與遞減型公式完全相同，因此在 spikeStart 之前兩者無法區分；
+         *   由於 spikeStart 最晚為 index 9 (週五PM)，遞減型在 index 9 之前都不能高信心確認。
+         * - 波型/隨機型 (Fluctuating): 起伏不定，不具備上述恆定規律，最大極限通常不超過 1.45x，且中途有多次起落。
+         * * 3. UI RENDERING & FEEDBACK (介面渲染與反饋機制)
+         * - 預測最佳時段時，會在對應的輸入框動態加入 `best-cell` (綠色光暈與高亮背景)，為用戶提供最直覺的視覺引導。
+         * - 當偵測到價格開始上漲時，會顯示動態升溫警告，提示大三期與大四期的理論巔峰時段。
+         * - 本週尚無價格時，依「上週走勢類型」透過轉移矩陣推算本週先驗，給出週日進貨建議 (isPriorMode)。
+         */
+
         const DAYS = ['週一', '週二', '週三', '週四', '週五', '週六'];
         const PERIODS = ['AM', 'PM'];
-        const PROB_MATRIX = { 'fluctuating': {'波型':20, '三期型':30, '遞減型':15, '四期型':35}, 'large': {'波型':50, '三期型':5, '遞減型':20, '四期型':25}, 'decreasing': {'波型':25, '三期型':45, '遞減型':5, '四期型':25}, 'small': {'波型':45, '三期型':25, '遞減型':15, '四期型':15}, 'unknown': {'波型':25, '三期型':25, '遞減型':25, '四期型':25} };
 
+        // 上週走勢 select value 對應的中文標籤
+        const LAST_LABEL = { fluctuating: '波型', large: '三期型', decreasing: '遞減型', small: '四期型' };
+
+        // 大三期/小四期起漲時段 (spikeStart) 在資料原始碼中的最晚 index：
+        // 三期 peak_start 範圍 3~9、四期 2~9。只要 currentIndex 尚未越過此值，
+        // 目前看似遞減的走勢仍可能是「晚爆型」的下跌前段。
+        const LATEST_SPIKE_START = 9; // index 9 = 週五PM
+
+        // 遊戲內部轉換機率矩陣（已對照原始碼；unknown 改用無條件穩態分佈而非均勻 25%）
+        const PROB_MATRIX = {
+            'fluctuating': {'波型':20, '三期型':30, '遞減型':15, '四期型':35},
+            'large': {'波型':50, '三期型':5, '遞減型':20, '四期型':25},
+            'decreasing': {'波型':25, '三期型':45, '遞減型':5, '四期型':25},
+            'small': {'波型':45, '三期型':25, '遞減型':15, '四期型':15},
+            'unknown': {'波型':34, '三期型':25, '遞減型':15, '四期型':26}
+        };
+
+        // 儲存狀態至本地瀏覽器
         function saveData() {
             const history = [];
             for(let d=0; d<6; d++) for(let p=0; p<2; p++) history.push(document.getElementById(`p-${d}-${p}`).value);
             localStorage.setItem('turnipData', JSON.stringify({ buyPrice: document.getElementById('buyPrice').value, lastWeekPattern: document.getElementById('lastWeekPattern').value, history }));
         }
 
+        // 從本地瀏覽器還原狀態
         function loadData() {
             const saved = localStorage.getItem('turnipData');
             if (saved) {
                 const data = JSON.parse(saved);
                 document.getElementById('buyPrice').value = data.buyPrice;
                 document.getElementById('lastWeekPattern').value = data.lastWeekPattern;
-                data.history.forEach((val, i) => { 
+                data.history.forEach((val, i) => {
                     const input = document.getElementById(`p-${Math.floor(i/2)}-${i%2}`);
                     if (input) input.value = val;
                 });
@@ -143,11 +192,13 @@
             }
         }
 
+        // 將陣列索引 (0-11) 轉換為週幾與時段的可讀中文字
         function getPeriodName(idx) {
             if (idx < 0 || idx > 11) return "未知";
             return `${DAYS[Math.floor(idx/2)]}${PERIODS[idx%2]}`;
         }
 
+        // 頁面初使化
         function init() {
             const grid = document.getElementById('priceGrid');
             grid.innerHTML = '';
@@ -161,10 +212,13 @@
             loadData();
         }
 
-        function updateNextWeekUI(currentPatternKey) {
+        // 機率條 UI 渲染。isPriorMode=true 時代表「本週」依上週推算的先驗，否則為「下週」依本週的預報。
+        function updateNextWeekUI(currentPatternKey, isPriorMode) {
             const probs = PROB_MATRIX[currentPatternKey] || PROB_MATRIX['unknown'];
             const container = document.getElementById('probBars');
             const adviceText = document.getElementById('nextWeekAdvice');
+            const headerLabel = document.getElementById('probHeaderLabel');
+            if (headerLabel) headerLabel.innerText = isPriorMode ? '本週機率預報（依上週）' : '下週機率預報';
             container.innerHTML = '';
             Object.entries(probs).forEach(([name, val]) => {
                 const row = document.createElement('div');
@@ -173,12 +227,17 @@
                 container.appendChild(row);
                 setTimeout(() => row.querySelector('.pattern-bar').style.width = val + '%', 100);
             });
+            if (isPriorMode) {
+                adviceText.innerHTML = "上方為『本週』可能波型（依上週走勢推算）。輸入週一起的實際價格後，將切換為鎖定本週判定 + 下週預報。";
+                return;
+            }
             if (probs['三期型'] >= 40) adviceText.innerHTML = "下週有 <span class='text-emerald-400 font-bold'>極高機率</span> 出現大爆發，建議本週日全力進貨。";
-            else if (probs['三期型'] + probs['四期型'] >= 60) adviceText.innerHTML = "下週獲利機率高，建議正常規模進場。";
+            else if (probs['三期型'] + probs['四期型'] >= 60) adviceText.innerHTML = "下週獲利機率高，建議正常規模進場。 <br> 點擊右上角重置鈕可清空所有歷史紀錄。";
             else if (probs['遞減型'] >= 20) adviceText.innerHTML = "下週出現遞減型風險稍高，建議保守進貨。";
             else adviceText.innerHTML = "下週走勢較為平均，請根據自身鈴錢存量調整。";
         }
 
+        // 核心演算法：診斷判定與決策建議
         function calculate() {
             const buyInput = document.getElementById('buyPrice').value;
             const buy = parseInt(buyInput) || 100;
@@ -197,39 +256,142 @@
                 adviceSection.classList.remove('hidden');
                 const lastVal = valid[valid.length-1];
                 const currentIndex = history.lastIndexOf(lastVal);
-                let detected = "偵測中", action = "等待數據", sub = "請觀察價格轉折。", badge = "border-slate-500 text-slate-500", target = "待判定", patternKey = "unknown", confidence = "";
-                
-                let spikeStart = -1;
-                for(let i=1; i<history.length; i++) if(!isNaN(history[i]) && !isNaN(history[i-1]) && history[i] > history[i-1]) { spikeStart = i; break; }
 
-                if (spikeStart !== -1) {
-                    const duration = currentIndex - spikeStart + 1;
-                    if (lastVal > buy * 2.0) {
-                        detected = "三期型"; patternKey = "large"; target = `${buy*2} ~ ${buy*6}`;
-                        const peakIdx = spikeStart + 2;
+                let detected = "偵測中", action = "等待數據", sub = "請觀察價格轉折。", badge = "border-slate-500 text-slate-500", target = "待判定", patternKey = "unknown", confidence = "", isPriorMode = false;
+
+                let maxVal = Math.max(...valid);
+                let maxIdx = history.lastIndexOf(maxVal); // #3 取最後一次到達最高價：tie 時定位一致，且避免提前判定「已過巔峰」
+
+                if (valid.length > 0) {
+                    // ACNH 核心過濾指標：週一上午價格比例 X
+                    const monAM = history[0];
+                    const monAMRatio = !isNaN(monAM) ? monAM / buy : null;
+
+                    // 三期型判定條件：價格暴漲至 2 倍買入價以上
+                    if (maxVal >= buy * 2.0) {
+                        detected = "三期型"; patternKey = "large"; target = `${Math.floor(buy*2)} ~ ${Math.ceil(buy*6)}`;
+                        const peakIdx = maxIdx;
                         const peakTime = getPeriodName(peakIdx);
-                        if (duration === 3) { action = "果斷賣出！"; sub = `這就是巔峰 (${peakTime})！之後會暴跌。`; badge = "bg-red-500 border-red-500 text-white"; confidence = "最高"; }
-                        else if (duration < 3) { action = "絕對等待"; sub = `正衝向三期巔峰，預計 <span class='text-emerald-400 font-bold'>${peakTime}</span> 最高。`; badge = "bg-amber-500 border-amber-500 text-white"; confidence = "高"; }
-                        if (peakIdx < 12) document.getElementById(`p-${Math.floor(peakIdx/2)}-${peakIdx%2}`).classList.add('best-cell');
-                    } else if (duration >= 4 || lastVal > buy * 1.4) {
-                        detected = "四期型"; patternKey = "small"; target = `${buy*1.4} ~ ${buy*2}`;
-                        const peakIdx = spikeStart + 3;
-                        const peakTime = getPeriodName(peakIdx);
-                        if (duration === 4) { action = "現在賣出"; sub = `四期巔峰就在此時 (${peakTime})，請儘速脫手。`; badge = "bg-emerald-500 border-emerald-500 text-white"; confidence = "最高"; }
-                        else if (duration < 4) { action = "建議等待"; sub = `預計巔峰於 <span class='text-blue-400 font-bold'>${peakTime}</span>，請觀察後續價格。`; badge = "bg-blue-400 border-blue-400 text-white"; confidence = "中"; }
+                        // #2 maxIdx 取最後一次最高價，故 currentIndex >= peakIdx 恆成立；爬升中(未破2x)由「偵測到上漲」分支處理，原「絕對等待」為死碼已移除
+                        if (currentIndex === peakIdx) { action = "果斷賣出！"; sub = `這就是巔峰 (${peakTime})！之後會暴跌。`; badge = "bg-red-500 border-red-500 text-white"; confidence = "最高"; }
+                        else { action = "止損離場"; sub = `三期巔峰 (${peakTime}) 已過，價格正在下跌。`; badge = "bg-slate-700 border-slate-700 text-white"; confidence = "最高"; }
                         if (peakIdx < 12) document.getElementById(`p-${Math.floor(peakIdx/2)}-${peakIdx%2}`).classList.add('best-cell');
                     }
-                } else {
-                    let dec = true;
-                    if (valid.length > 1) { for(let i=1; i<valid.length; i++) if(valid[i] > valid[i-1]) dec = false; }
-                    if (dec && valid.length > 0) { 
-                        detected = "遞減型"; patternKey = "decreasing"; target = "持續下降";
-                        if (currentIndex >= 6) { action = "考慮止損"; sub = "週三下午後仍跌，極大機率為遞減型，尋求朋友島。"; badge = "bg-red-600 border-red-600 text-white"; confidence = "高"; } 
-                        else { action = "觀察轉折"; sub = "尚未偵測到上漲，請留意週三轉折。"; confidence = "中"; }
-                    } else if (valid.length > 0) { 
-                        detected = "波型"; patternKey = "fluctuating"; action = "見好就收"; sub = "隨機型波動較大，獲利超過1.2倍即可脫手。"; target = `${buy*1.1} ~ ${buy*1.4}`; badge = "bg-indigo-500 border-indigo-500 text-white"; confidence = "低";
+                    // #1 1.45x 以上：超過波型理論上限(約 1.41x)，確定是 spike；但三期正爬向 2x、四期已近頂，此刻無法區分 → 別急著賣
+                    else if (maxVal >= buy * 1.45) {
+                        detected = "四期型"; patternKey = "small"; target = `${Math.floor(buy*1.4)} ~ ${Math.ceil(buy*2.0)}`;
+                        const peakIdx = maxIdx;
+                        const peakTime = getPeriodName(peakIdx);
+                        if (currentIndex === peakIdx) {
+                            // 目前最新價即為最高點：關鍵時刻，先別賣，等一期辨明三期/四期
+                            action = "觀望一期再決定";
+                            sub = `已破 1.45 倍、確定為 spike。下一期若 <span class='text-red-400 font-bold'>突破 2 倍</span> → 三期型大爆發(續抱)；若回落 → 四期巔峰(${peakTime} ±1 時段)，立即賣出。四期回落後一期仍約 1.4x，等待成本低。`;
+                            badge = "bg-amber-500 border-amber-500 text-white"; confidence = "中";
+                        } else {
+                            // 已越過最高點且未破 2 倍 → 確定非三期 → 四期型，巔峰已過
+                            action = "把握賣出";
+                            sub = `未破 2 倍、確定為四期型，巔峰(${peakTime} ±1 時段)已過、目前回落，但仍高於成本，請儘速賣出。`;
+                            badge = "bg-emerald-500 border-emerald-500 text-white"; confidence = "高";
+                        }
+                        if (peakIdx < 12) document.getElementById(`p-${Math.floor(peakIdx/2)}-${peakIdx%2}`).classList.add('best-cell');
+                    }
+                    // #1 1.4x ~ 1.45x：落在波型上限附近，較可能是波型高點 → 見好就收，但提醒續漲破 1.5x 則改判 spike
+                    else if (maxVal >= buy * 1.4) {
+                        detected = "波型"; patternKey = "fluctuating"; action = "見好就收";
+                        sub = "利潤已達 1.4 倍，落在波型常見上限附近，建議獲利了結。但若下一期續漲突破 1.5 倍，則改判為 spike，請改為觀望。";
+                        target = `${Math.floor(buy*1.1)} ~ ${Math.ceil(buy*1.4)}`; badge = "bg-indigo-500 border-indigo-500 text-white"; confidence = "中";
+                    } else {
+                        // 數學核心：嚴格比對遞減型 (開局 0.85x ~ 0.90x，每期減少 3%~5%)
+                        let isStrictlyDecreasing = true;
+                        // 取整後上界放寬 1/buy：ceil 會使 monAM 比例上浮最多約 1/buy，否則 base=90 的合法遞減型會被誤殺
+                        if (monAMRatio !== null && (monAMRatio < 0.85 || monAMRatio > 0.90 + 1 / buy)) {
+                            isStrictlyDecreasing = false;
+                        }
+
+                        let lastValidVal = null;
+                        let lastValidIdx = -1;
+                        for (let i = 0; i < 12; i++) {
+                            const val = history[i];
+                            if (!isNaN(val)) {
+                                if (lastValidVal !== null) {
+                                    if (val > lastValidVal) isStrictlyDecreasing = false;
+                                    const diff = lastValidVal - val;
+                                    const steps = i - lastValidIdx;
+                                    const minDiff = steps * (buy * 0.03);
+                                    const maxDiff = steps * (buy * 0.05);
+                                    // 容許 1.5 鈴錢的取整誤差
+                                    if (diff < minDiff - 1.5 || diff > maxDiff + 1.5) isStrictlyDecreasing = false;
+                                }
+                                lastValidVal = val;
+                                lastValidIdx = i;
+                            }
+                        }
+
+                        if (isStrictlyDecreasing && valid.length > 0) {
+                            detected = "遞減型"; patternKey = "decreasing"; target = "持續下降";
+                            // 三期型起漲 (spikeStart) 最晚在 index 9 (週五PM)，其下跌前段與遞減型公式相同。
+                            // 因此在越過 index 9 之前，看似遞減仍可能是晚爆大三期的前段，不能高信心叫人清倉。
+                            if (currentIndex >= LATEST_SPIKE_START) {
+                                action = "確認遞減，出清";
+                                sub = "已過所有可能的晚爆時段，確認為遞減型，請儘快前往朋友島賣出止損。";
+                                badge = "bg-red-600 border-red-600 text-white"; confidence = "高";
+                            } else {
+                                const nextRise = getPeriodName(Math.max(3, currentIndex + 1));
+                                const lastRise = getPeriodName(LATEST_SPIKE_START);
+                                action = "先別急著賣";
+                                sub = `走勢吻合遞減型，但大三期仍可能於 <span class='text-amber-400 font-bold'>${nextRise}～${lastRise}</span> 之間突然起漲。建議觀察到該區間結束、確認沒反彈再清倉。`;
+                                badge = "bg-amber-500 border-amber-500 text-white";
+                                confidence = currentIndex >= 7 ? "中" : "低";
+                            }
+                        } else {
+                            // 非遞減也未爆發：判斷是否正自谷底回升（可能是 spike 起漲段）
+                            const rising = currentIndex > 0 && !isNaN(history[currentIndex]) && !isNaN(history[currentIndex-1]) && history[currentIndex] > history[currentIndex-1];
+                            if (rising) {
+                                // #4 以「谷底 + 1」估 spikeStart：比連續上漲 streak 穩健。
+                                // 四期 step1→step2 皆 0.9~1.4x 可能下折，streak 會在此中斷而把起點算晚一格。
+                                let troughIdx = -1;
+                                for (let i = 0; i <= currentIndex; i++) {
+                                    if (isNaN(history[i])) continue;
+                                    if (troughIdx === -1 || history[i] < history[troughIdx]) troughIdx = i;
+                                }
+                                let estSpikeStart = troughIdx + 1;
+                                let estLargePeak = estSpikeStart + 2;
+                                let estSmallPeak = estSpikeStart + 3;
+                                detected = "偵測到上漲"; patternKey = "unknown"; action = "建議等待";
+                                sub = `偵測到價格自谷底回升！若為三期型，巔峰約在 <span class='text-emerald-400 font-bold'>${getPeriodName(estLargePeak)}</span>；若為四期型，約在 <span class='text-blue-400 font-bold'>${getPeriodName(estSmallPeak)}</span>（±1 時段）。`;
+                                badge = "bg-amber-500 border-amber-500 text-white"; confidence = "中";
+                            } else {
+                                detected = "波型"; patternKey = "fluctuating"; action = "見好就收"; sub = "隨機型波動較大，目前價格已從高點回落，若有微幅獲利即可考慮售出。"; target = `${Math.floor(buy*1.1)} ~ ${Math.ceil(buy*1.4)}`; badge = "bg-indigo-500 border-indigo-500 text-white"; confidence = "高";
+                            }
+                        }
+                    }
+                } else if (lastPatternKey !== 'unknown') {
+                    // 本週尚無價格：用「上週 → 本週」轉移機率當先驗，給出週日進貨建議。
+                    // 此時機率條代表「本週」可能波型，故 patternKey 設為上週、isPriorMode=true。
+                    const prior = PROB_MATRIX[lastPatternKey];
+                    const top = Object.entries(prior).sort((a, b) => b[1] - a[1])[0];
+                    patternKey = lastPatternKey; isPriorMode = true;
+                    detected = `待輸入｜最可能 ${top[0]} ${top[1]}%`;
+                    const spikeChance = prior['三期型'] + prior['四期型'];
+                    if (prior['三期型'] >= 40) {
+                        action = "週日值得多進貨";
+                        sub = `上週為「${LAST_LABEL[lastPatternKey]}」，本週有 <span class='text-emerald-400 font-bold'>${prior['三期型']}%</span> 機率出現大三期爆發，回報期望值高。`;
+                        badge = "bg-emerald-500 border-emerald-500 text-white"; confidence = "中";
+                    } else if (spikeChance >= 55) {
+                        action = "可正常進貨";
+                        sub = `上週為「${LAST_LABEL[lastPatternKey]}」，本週爆發型（三期＋四期）合計 <span class='text-emerald-400 font-bold'>${spikeChance}%</span>，獲利機率不低。`;
+                        badge = "bg-blue-400 border-blue-400 text-white"; confidence = "中";
+                    } else if (prior['遞減型'] >= 18) {
+                        action = "建議保守進貨";
+                        sub = `上週為「${LAST_LABEL[lastPatternKey]}」，本週遞減型機率達 <span class='text-amber-400 font-bold'>${prior['遞減型']}%</span>，賠本風險較高，量力而為。`;
+                        badge = "bg-amber-500 border-amber-500 text-white"; confidence = "低";
+                    } else {
+                        action = "量力進貨";
+                        sub = `上週為「${LAST_LABEL[lastPatternKey]}」，本週走勢偏平均，請依自身鈴錢存量斟酌。`;
+                        badge = "border-slate-500 text-slate-500"; confidence = "低";
                     }
                 }
+
                 document.getElementById('thisWeekPattern').innerText = detected;
                 document.getElementById('mainAdvice').innerText = action;
                 document.getElementById('subAdvice').innerHTML = sub;
@@ -237,14 +399,18 @@
                 document.getElementById('statusBadge').innerText = valid.length === 0 ? "預測模式" : "診斷完成";
                 document.getElementById('statusBadge').className = `px-2 py-0.5 rounded text-[10px] font-black border ${badge}`;
                 if (confidence) { confLabel.innerText = `信心度：${confidence}`; confLabel.classList.remove('hidden'); } else { confLabel.classList.add('hidden'); }
-                updateNextWeekUI(patternKey);
+                updateNextWeekUI(patternKey, isPriorMode);
             } else { adviceSection.classList.add('hidden'); }
             saveData();
         }
 
+        // 顯示重置確認視窗
         function showResetModal() { document.getElementById('resetModal').classList.remove('hidden'); }
+        // 關閉重置確認視窗
         function hideResetModal() { document.getElementById('resetModal').classList.add('hidden'); }
+        // 確認重置：清除快取並重刷頁面
         function confirmReset() { localStorage.removeItem('turnipData'); location.reload(); }
+
         window.onload = init;
     </script>
 </body>
