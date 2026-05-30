@@ -43,9 +43,10 @@
   input[type=number]{-moz-appearance:textfield}
 
   /* ===== header ===== */
-  header{padding:2rem 0 1.1rem;display:flex;align-items:flex-end;justify-content:space-between}
-  .brand .kicker{font-size:.62rem;letter-spacing:.34em;text-transform:uppercase;color:var(--sage-deep);font-weight:700;margin-bottom:.15rem}
-  .brand h1{font-family:'Noto Sans TC',sans-serif;font-weight:600;font-size:1.85rem;margin:0;line-height:1.05;color:var(--ink)}
+  header{padding:2rem 0 1.1rem;display:flex;align-items:center;justify-content:space-between}
+  .brand{display:flex;align-items:center;gap:.55rem}
+  .brand-icon{width:2.6rem;height:2.6rem;border-radius:.7rem;object-fit:cover;box-shadow:0 5px 14px -5px rgba(60,55,35,.45);flex-shrink:0}
+  .brand h1{font-family:'Noto Sans TC',sans-serif;font-weight:700;font-size:1.55rem;margin:0;line-height:1.05;color:var(--ink)}
   .brand h1 .leaf{color:var(--sage)}
   .icon-btn{appearance:none;border:1px dashed var(--line);background:transparent;color:var(--ink-mute);width:2.4rem;height:2.4rem;border-radius:50%;display:grid;place-items:center;cursor:pointer;transition:.25s}
   .icon-btn:hover{color:var(--clay);border-color:var(--clay);transform:rotate(-90deg)}
@@ -168,7 +169,8 @@
 
   <header class="reveal">
     <div class="brand">
-      <h1 class="serif">大頭菜<span class="leaf">預測</span></h1>
+      <img class="brand-icon" src="https://image01.seesaawiki.jp/a/o/acnh-zh-game-info/6UP7vFYazP.jpeg" alt="大頭菜" width="42" height="42">
+      <h1 class="serif">大頭菜漲價吧<span class="leaf">♪</span></h1>
     </div>
     <button class="icon-btn" id="resetBtn" onclick="showResetModal()" aria-label="重置所有數據" title="重置">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
