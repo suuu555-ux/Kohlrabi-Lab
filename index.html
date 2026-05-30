@@ -204,10 +204,10 @@
       <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
     </button>
     <div class="collapse-body" id="heroBody"><div class="pad">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:.3rem">
-        <span class="badge" id="heroBadge" style="color:#C7D0A4">分析中</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem">
+        <div class="verdict serif" id="heroVerdict">請輸入價格</div>
+        <span class="badge hidden" id="heroBadge" style="color:#C7D0A4;flex-shrink:0">分析中</span>
       </div>
-      <div class="verdict serif" id="heroVerdict">請輸入價格</div>
       <div class="when" id="heroWhen">依你輸入的每日菜價，推算最佳脫手時段。</div>
       <p class="note" id="heroNote"></p>
       <div class="stats">
@@ -481,10 +481,12 @@ function recompute(){
 
   // ---- Hero ----
   const badge=document.getElementById('heroBadge'),verdict=document.getElementById('heroVerdict'),when=document.getElementById('heroWhen'),note=document.getElementById('heroNote'),sMin=document.getElementById('statMin'),sMax=document.getElementById('statMax'),sMinLabel=document.getElementById('statMinLabel'),sMaxLabel=document.getElementById('statMaxLabel');
+  badge.classList.add('hidden'); // 方案2：預設隱藏，只在「預測模式 / 無法判定」顯示
   if(!a){
-    badge.textContent='無法判定';verdict.textContent='查無吻合走勢';
+    badge.classList.remove('hidden');badge.style.color='#EBB9A6';badge.textContent='無法判定';verdict.textContent='查無吻合走勢';
     when.textContent='輸入的菜價超出所有可能範圍。';note.innerHTML='';sMin.textContent='—';sMax.textContent='—';
     setSummary('查無吻合走勢','—');
+    scheduleAlertCheck('查無吻合走勢',-1,null,filled);
     return saveData();
   }
   // 這兩格是「往後還能賣到多少」的賣出結果，非價格曲線高低；收盤後改顯示實際本週高低
@@ -497,16 +499,15 @@ function recompute(){
     sMaxLabel.textContent='最佳可達';sMax.innerHTML=a.weekMax+'<small>鈴</small>';
   }
   if(filled===0){
-    badge.textContent='預測模式';
+    badge.classList.remove('hidden');badge.style.color='#C7D0A4';badge.textContent='預測模式';
     verdict.textContent='靜待開盤';
     when.textContent=lastKey==='unknown'?'下方為各時段的理論價格區間。':`依上週「${PNAME[PREV_MAP[lastKey]]}」推估，本週最可能是「${PNAME[dom]}」(${Math.round(a.probs[dom]*100)}%)。`;
     note.innerHTML=a.probs[1]>=0.4?'本週<b>大三期</b>機率偏高，週日值得多進貨。':(a.probs[2]>=0.2?'本週<b>遞減型</b>風險稍高，進貨保守為宜。':'走勢偏平均，依鈴錢存量斟酌進貨。');
   }else if(filled>=12){
-    badge.textContent='本週收盤';verdict.textContent='已收盤';
+    verdict.textContent='已收盤';
     when.textContent='所有時段皆已填寫。';note.innerHTML='';
   }else if(dom===2){
     // 遞減型（機率判定，非僅憑剩餘低於成本）：立即賣，之後只跌不升
-    badge.textContent='診斷完成';badge.style.color='#E6C879';
     verdict.textContent='立即賣出';
     when.textContent='研判為遞減型，之後只跌不升。';
     note.innerHTML='請儘速前往<b>朋友島</b>脫手止損，別再等高點。';
@@ -518,7 +519,6 @@ function recompute(){
     let bestSeenIdx=-1,lastIdx=-1;
     for(let i=0;i<12;i++) if(!isNaN(history[i])){lastIdx=i;if(history[i]===bestSeen&&bestSeenIdx<0)bestSeenIdx=i;}
     const fmax=a.weekMax; // 剩餘時段可達的上限
-    badge.textContent='診斷完成';badge.style.color='#E6C879';
     if(fmax>=bestSeen){
       // 高點/巔峰仍在前方（或可被追平）→ 先別賣
       if(isSpike&&bestIdx>=0){
@@ -574,22 +574,41 @@ function applyUIState(){
 }
 
 /* ---- 變動提示 alert（脫手建議 / 走勢預判 有變就跳） ---- */
-let _prevVerdict=null,_prevDom=null,_alertTimer=null;
+let _prevCat=null,_prevDom=null,_alertTimer=null;
+const VERDICT_ALERT={
+  B:'⚠ 就是現在！最高點到了，立刻賣！',
+  C:'⚠ 高點已過！沒賣就趁回落前出手',
+  D:'⚠ 該止損！研判遞減型，愈晚愈低',
+  E:'⚠ 轉為波型！高點隨機，見好就收',
+  F:'⚠ 數據異常！查無吻合，請檢查輸入'
+};
+// 把結論歸成「類別」，同類別內時段微調不重複跳 alert
+function verdictCategory(vt,a,filled){
+  if(filled===0) return null;
+  if(vt==='查無吻合走勢') return 'F';
+  if(!a||vt==='已收盤') return null;
+  if(vt==='立即賣出') return 'D';
+  if(vt==='見好就收') return 'E';
+  if(vt==='高點已過') return 'C';
+  if(vt==='就是現在！'||vt==='現在就賣') return 'B';
+  return 'A'; // 其餘是時段（三期/四期巔峰目標）
+}
 function scheduleAlertCheck(vt,dom,a,filled){
   clearTimeout(_alertTimer);
   _alertTimer=setTimeout(()=>{
+    const cat=verdictCategory(vt,a,filled);
     if(_prevDom!==null){
-      if(a&&dom!==_prevDom) showAlert('pattern',dom,vt);
-      else if(filled>0&&vt!==_prevVerdict) showAlert('verdict',dom,vt);
+      if(a&&dom!==_prevDom) showAlert('⚠ 走勢翻轉！現為「'+PNAME[dom]+'」','probCard');
+      else if(cat&&cat!==_prevCat){
+        const msg = cat==='A' ? ('⚠ 偵測到飆漲！巔峰估在「'+vt+'」，先別賣') : VERDICT_ALERT[cat];
+        showAlert(msg,'hero');
+      }
     }
-    _prevVerdict=vt;_prevDom=dom;
+    _prevCat=cat;_prevDom=dom;
   },600);
 }
-function showAlert(type,dom,vt){
+function showAlert(msg,target){
   const bar=document.getElementById('alertBar');if(!bar)return;
-  let msg,target;
-  if(type==='pattern'){msg='⚠ 走勢翻轉！現為「'+PNAME[dom]+'」';target='probCard';}
-  else{msg='⚠ 脫手建議變了！現為「'+vt+'」';target='hero';}
   bar.querySelector('.alert-msg').textContent=msg;
   bar.dataset.target=target;
   bar.classList.add('show');
