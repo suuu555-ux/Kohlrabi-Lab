@@ -186,11 +186,11 @@
       <p class="note" id="heroNote"></p>
       <div class="stats">
         <div class="stat up">
-          <div class="k">保證最低</div>
+          <div class="k" id="statMinLabel">保底賣價</div>
           <div class="v num" id="statMin">—</div>
         </div>
         <div class="stat">
-          <div class="k">最高可能</div>
+          <div class="k" id="statMaxLabel">最佳可達</div>
           <div class="v num" id="statMax">—</div>
         </div>
       </div>
@@ -449,14 +449,21 @@ function recompute(){
   }
 
   // ---- Hero ----
-  const badge=document.getElementById('heroBadge'),verdict=document.getElementById('heroVerdict'),when=document.getElementById('heroWhen'),note=document.getElementById('heroNote'),sMin=document.getElementById('statMin'),sMax=document.getElementById('statMax');
+  const badge=document.getElementById('heroBadge'),verdict=document.getElementById('heroVerdict'),when=document.getElementById('heroWhen'),note=document.getElementById('heroNote'),sMin=document.getElementById('statMin'),sMax=document.getElementById('statMax'),sMinLabel=document.getElementById('statMinLabel'),sMaxLabel=document.getElementById('statMaxLabel');
   if(!a){
     badge.textContent='無法判定';verdict.textContent='查無吻合走勢';
     when.textContent='輸入的菜價超出所有可能範圍。';note.innerHTML='';sMin.textContent='—';sMax.textContent='—';
     return saveData();
   }
-  sMin.innerHTML=a.guaranteedMin+'<small>鈴</small>';
-  sMax.innerHTML=a.weekMax+'<small>鈴</small>';
+  // 這兩格是「往後還能賣到多少」的賣出結果，非價格曲線高低；收盤後改顯示實際本週高低
+  if(filled>=12){
+    const ent=history.filter(v=>!isNaN(v));
+    sMinLabel.textContent='本週最低';sMin.innerHTML=Math.min(...ent)+'<small>鈴</small>';
+    sMaxLabel.textContent='本週最高';sMax.innerHTML=Math.max(...ent)+'<small>鈴</small>';
+  }else{
+    sMinLabel.textContent='保底賣價';sMin.innerHTML=a.guaranteedMin+'<small>鈴</small>';
+    sMaxLabel.textContent='最佳可達';sMax.innerHTML=a.weekMax+'<small>鈴</small>';
+  }
   if(filled===0){
     badge.textContent='預測模式';
     verdict.textContent='靜待開盤';
@@ -471,30 +478,45 @@ function recompute(){
     verdict.textContent='立即賣出';
     when.textContent='研判為遞減型，之後只跌不升。';
     note.innerHTML='請儘速前往<b>朋友島</b>脫手止損，別再等高點。';
-  }else if((dom===1||dom===3)&&bestIdx>=0){
-    // 三期/四期：有可辨識巔峰
-    const b=getSlot(bestIdx);const bs=a.perSlot[bestIdx];
-    badge.textContent='診斷完成';badge.style.color='#E6C879';
-    verdict.textContent=`${b.d}${b.ap}`;
-    when.textContent=`${dom===1?'三期':'四期'}巔峰 · 上看 ${bs.max} 鈴`;
-    note.innerHTML=dom===1?'<b>大三期</b>可達 2–6 倍，沉住氣等巔峰再賣。':'四期巔峰約落此時，價格接近上限就出手。';
   }else{
-    // 波型（隨機）/ 高點已過：依「剩餘可達上限 vs 成本 / 曾見高點」分流，絕不誤標為遞減型
-    const seen=history.filter(v=>!isNaN(v));const bestSeen=seen.length?Math.max(...seen):0;
+    // 三期/四期/波型 統一：比較「剩餘可達上限 fmax vs 已見最高 bestSeen」與「最高是否就在此刻」
+    const isSpike=(dom===1||dom===3);
+    const peakWord=dom===1?'三期巔峰':(dom===3?'四期巔峰':'波型高點');
+    const seen=history.filter(v=>!isNaN(v));const bestSeen=Math.max(...seen);
+    let bestSeenIdx=-1,lastIdx=-1;
+    for(let i=0;i<12;i++) if(!isNaN(history[i])){lastIdx=i;if(history[i]===bestSeen&&bestSeenIdx<0)bestSeenIdx=i;}
     const fmax=a.weekMax; // 剩餘時段可達的上限
     badge.textContent='診斷完成';badge.style.color='#E6C879';
-    if(fmax<=buyForScale){
-      verdict.textContent='高點恐已過';
-      when.textContent=`剩餘時段預估都低於成本 ${buyForScale} 鈴`;
-      note.innerHTML=`波型高點（曾達 <b>${bestSeen}</b>）多半已過，往後上限約 ${fmax} 鈴、不破成本。若還有貨請<b>儘速脫手</b>，別等反彈。`;
-    }else if(fmax>=bestSeen-2){
-      verdict.textContent='見好就收';
-      when.textContent=`波型（隨機）· 上限可達 ${fmax} 鈴（≈${(fmax/buyForScale).toFixed(2)}x）`;
-      note.innerHTML=`未來仍<b>可能</b>再衝到 ~${fmax}（不保證時段）——看到接近上限就賣，別放掉眼前的高點。`;
+    if(fmax>=bestSeen){
+      // 高點/巔峰仍在前方（或可被追平）→ 先別賣
+      if(isSpike&&bestIdx>=0){
+        const b=getSlot(bestIdx);
+        verdict.textContent=`${b.d}${b.ap}`;
+        when.textContent=`${dom===1?'三期':'四期'}巔峰 · 上看 ${a.perSlot[bestIdx].max} 鈴`;
+        let g=dom===1?'<b>大三期</b>正在成形，沉住氣<b>等巔峰</b>再賣，別早賣。':'四期巔峰將至，價格接近上限再出手。';
+        if(a.probs[dom]<0.7&&a.probs[2]>=0.2)g+=` 但尚有 <b>${Math.round(a.probs[2]*100)}%</b> 為遞減型，若跌破前低就改為立即賣出。`;
+        note.innerHTML=g;
+      }else{
+        verdict.textContent='見好就收';
+        when.textContent=`波型（隨機）· 上限可達 ${fmax} 鈴（≈${(fmax/buyForScale).toFixed(2)}x）`;
+        note.innerHTML=`未來仍<b>可能</b>再衝到 ~${fmax}（不保證時段）——看到接近上限就賣，別放掉眼前的高點。`;
+      }
+    }else if(bestSeenIdx===lastIdx){
+      // 最高點就是此刻最新這格 → 立刻賣
+      verdict.textContent=isSpike?'就是現在！':'現在就賣';
+      when.textContent=`${peakWord} ${bestSeen} 鈴就在此刻`;
+      note.innerHTML=`這是目前最高，之後${isSpike?'<b>會暴跌</b>':'多半下滑'}——<b>立刻賣出</b>。`;
     }else{
-      verdict.textContent='高點或已過';
-      when.textContent=`波型（隨機）· 往後上限約 ${fmax} 鈴`;
-      note.innerHTML=`先前高點 <b>${bestSeen}</b> 之後，剩餘上限降到 ~${fmax}。高點多半已過，若沒賣可趁小反彈脫手。`;
+      // 高點已過
+      const ps=getSlot(bestSeenIdx);
+      verdict.textContent='高點已過';
+      if(fmax<=buyForScale){
+        when.textContent=`${peakWord}（${bestSeen}）已過，剩餘不破成本`;
+        note.innerHTML=`最高 <b>${bestSeen}</b>（${ps.d}${ps.ap}）已過，往後上限約 ${fmax}、低於成本 ${buyForScale}。有貨請<b>儘速脫手</b>。`;
+      }else{
+        when.textContent=`${peakWord}（${bestSeen}）已過、目前回落`;
+        note.innerHTML=`錯過了 <b>${bestSeen}</b>（${ps.d}${ps.ap}）；目前仍高於成本，若沒賣請<b>儘速出手</b>，往後上限只剩 ~${fmax}。`;
+      }
     }
   }
   saveData();
