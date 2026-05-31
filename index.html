@@ -15,14 +15,18 @@
 <style>
   /* ===== 大頭菜圖鑑 · Botanical Field-Guide palette (taste: warm grayscale + 2 accents) ===== */
   :root{
-    --paper:#F2EEE6; --paper-2:#ECE7DB;
-    --card:#FFFFFF; --card-2:#F6F3EC;
-    --ink:#33372C; --ink-soft:#5E6150; --ink-mute:#7C7C64;
-    --line:#E7E2D7;
-    --sage:#7C8A54; --sage-deep:#586A36; --sage-soft:#B4BE8C;
-    --honey:#C0902F; --honey-soft:#E6C879;
-    --clay:#AA5F44;
-    --shadow:22px 28px 56px -38px rgba(60,55,35,.28);
+    --paper:#F4EFE6; /* 動森 Nook Phone 經典奶油沙色 */
+    --paper-2:#E9E3D3; /* 稍微深一點的沙色，用於軌道與未選取狀態 */
+    --card:#FFFFFF; --card-2:#FAF7F0; /* 沙色調白，更溫和 */
+    --ink:#3E3F35; /* 大自然木質深炭色 */
+    --ink-soft:#626456; --ink-mute:#8B8D78;
+    --line:#E4DEC9; /* 溫暖的 Nook Phone 實線邊框 */
+    --sage:#78935C; /* 動森指標葉子綠 */
+    --sage-deep:#4C5F39; --sage-soft:#CAD6B4;
+    --honey:#D59A2F; /* 暖橘黃 */
+    --honey-soft:#F8E8C0;
+    --clay:#C4674E; /* 黏土橘紅 */
+    --shadow:3px 3px 0px rgba(98,100,86,0.1); /* 極具物理挺拔感的扁平硬投影，絕無髒黑大陰影 */
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0}
@@ -30,14 +34,14 @@
     font-family:'Noto Sans TC',sans-serif; color:var(--ink);
     background-color:var(--paper);
     background-image:
-      radial-gradient(120% 80% at 50% -10%, #F7F0E0 0%, rgba(247,240,224,0) 60%),
+      radial-gradient(120% 80% at 50% -10%, #FDFBF7 0%, rgba(253,251,247,0) 60%),
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
     padding-bottom:env(safe-area-inset-bottom);
     line-height:1.6;
     letter-spacing:.03em;
   }
   .wrap{max-width:30rem;margin:0 auto;padding:0 1.1rem}
-  .wrap section + section{margin-top:1.1rem}  /* 區塊間距（DRY：取代各 section 的 inline margin-top） */
+  .wrap section + section{margin-top:1.1rem}  /* 區塊間距（DRY） */
   .serif{font-family:'Noto Sans TC',sans-serif}
   .num{font-family:'Noto Sans TC',sans-serif;font-variant-numeric:tabular-nums lining-nums;letter-spacing:.03em}
   input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
@@ -46,17 +50,17 @@
   /* ===== header ===== */
   header{padding:2rem 0 1.1rem;display:flex;align-items:center;justify-content:space-between}
   .brand{display:flex;align-items:center;gap:.55rem}
-  .brand-icon{width:2.6rem;height:2.6rem;border-radius:.7rem;object-fit:cover;box-shadow:0 5px 14px -5px rgba(60,55,35,.45);flex-shrink:0}
+  .brand-icon{width:2.6rem;height:2.6rem;border-radius:.7rem;object-fit:cover;box-shadow:var(--shadow);border:2px solid var(--line);flex-shrink:0}
   .brand h1{font-family:'Noto Sans TC',sans-serif;font-weight:700;font-size:1.55rem;margin:0;line-height:1.05;color:var(--ink)}
   .brand h1 .leaf{color:var(--sage)}
-  .icon-btn{appearance:none;border:1px dashed var(--line);background:transparent;color:var(--ink-mute);width:2.4rem;height:2.4rem;border-radius:50%;display:grid;place-items:center;cursor:pointer;transition:.25s}
+  .icon-btn{appearance:none;border:2px dashed var(--line);background:var(--card);color:var(--ink-mute);width:2.4rem;height:2.4rem;border-radius:50%;display:grid;place-items:center;cursor:pointer;transition:.25s;box-shadow:var(--shadow)}
   .icon-btn:hover{color:var(--clay);border-color:var(--clay);transform:rotate(-90deg)}
 
-  /* ===== cards ===== */
-  .card{background:var(--card);border-radius:1.6rem;box-shadow:var(--shadow);border:1px solid #00000008;position:relative;overflow:hidden}
-  .card.framed::before{content:"";position:absolute;inset:.5rem;border:1px dashed var(--line);border-radius:1.2rem;pointer-events:none}
+  /* ===== cards (Nook Phone Flat Style) ===== */
+  .card{background:var(--card);border-radius:1.1rem;box-shadow:var(--shadow);border:2px solid var(--line);position:relative;overflow:hidden}
+  .card.framed::before{content:"";position:absolute;inset:.45rem;border:1.5px dashed var(--line);border-radius:.8rem;pointer-events:none}
   .pad{padding:1.4rem 1.5rem}
-  .dotted-sep{border:0;border-top:1.5px dotted var(--line);margin:1.1rem 0}
+  .dotted-sep{border:0;border-top:2px dotted var(--line);margin:1.1rem 0}
 
   /* ===== collapsible sections（可收合卡片） ===== */
   .sect-toggle{width:100%;display:flex;align-items:center;gap:.7rem;background:none;border:0;cursor:pointer;font-family:inherit;color:inherit;text-align:left;padding:1.05rem 1.4rem;letter-spacing:.03em}
@@ -68,14 +72,41 @@
   .collapse-body{overflow:hidden;max-height:40rem;transition:max-height .4s cubic-bezier(.4,0,.2,1)}
   .collapsible.collapsed .collapse-body{max-height:0}
   .collapse-body>.pad{padding-top:.25rem}
-  .hero .sect-toggle-label{color:#C7D0A4}
+  .hero .sect-toggle-label{color:#CAD6B4}
   .hero .sect-toggle-summary{color:#fff}
   #probCard .sect-toggle-label{color:var(--sage-deep)}
   #probCard .sect-toggle-summary{color:var(--ink)}
 
-  /* ===== change alert（變動提示） ===== */
-  #alertBar{position:fixed;top:0;left:50%;transform:translate(-50%,-130%);z-index:60;width:calc(100% - 1.6rem);max-width:29rem;display:flex;align-items:center;justify-content:center;gap:.5rem;background:var(--honey-soft);color:#4A3B12;font-weight:700;font-size:.92rem;letter-spacing:.03em;padding:.8rem 1.1rem;border-radius:0 0 1.1rem 1.1rem;border-left:4px solid var(--clay);box-shadow:0 14px 34px -12px rgba(60,55,35,.5);cursor:pointer;transition:transform .4s cubic-bezier(.2,.85,.25,1)}
-  #alertBar.show{transform:translate(-50%,0)}
+  /* ===== change alert（變動提示 - 裝置全寬、無紅邊極簡設計） ===== */
+  #alertBar{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    transform:translateY(-110%);
+    z-index:60;
+    width:100%;
+    max-width:none; /* 移除限制，改為裝置全寬 */
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:.5rem;
+    background:var(--honey-soft);
+    color:#5C4314;
+    font-weight:700;
+    font-size:.92rem;
+    letter-spacing:.03em;
+    padding:1rem 1.1rem;
+    border-radius:0 0 1.1rem 1.1rem; /* 補回溫和的底部圓角 */
+    border:0;
+    border-bottom:3px solid var(--honey); /* 移除左側紅邊，改為底部溫暖暖橘黃線收邊 */
+    box-shadow:0 4px 12px rgba(98,100,86,0.08);
+    cursor:pointer;
+    transition:transform .4s cubic-bezier(.2,.85,.25,1);
+  }
+  #alertBar.show{
+    transform:translateY(0); /* 純垂直滑入 */
+  }
   #alertBar .alert-msg{min-width:0;text-align:center}
 
   /* ===== inputs row (buy + last week) ===== */
@@ -84,31 +115,31 @@
   .buy-input{width:6rem;text-align:right;font-family:'Noto Sans TC',sans-serif;font-variant-numeric:tabular-nums;font-weight:600;font-size:1.7rem;color:var(--sage-deep);border:0;border-bottom:2px solid var(--line);background:transparent;outline:none;padding:.1rem .2rem}
   .buy-input:focus{border-color:var(--sage)}
   .buy-input::placeholder{color:var(--ink-mute);opacity:.5}
-  select.pick{appearance:none;background:var(--card-2);border:1px dashed var(--line);border-radius:.8rem;padding:.5rem 2rem .5rem .9rem;font-family:inherit;font-size:.86rem;font-weight:700;color:var(--ink);cursor:pointer;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23586A36' stroke-width='2'%3E%3Cpath d='M3 5l3 3 3-3'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .7rem center}
+  select.pick{appearance:none;background:var(--card-2);border:2px solid var(--line);border-radius:.7rem;padding:.5rem 2rem .5rem .9rem;font-family:inherit;font-size:.86rem;font-weight:700;color:var(--ink);cursor:pointer;box-shadow:2px 2px 0px rgba(98,100,86,0.04);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%234C5F39' stroke-width='2'%3E%3Cpath d='M3 5l3 3 3-3'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .7rem center}
 
   /* ===== hero ===== */
-  .hero{background:linear-gradient(165deg,#3F6A4B 0%,#2C5039 100%);color:#F4EFDF;border-radius:1.9rem;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .hero{background:#4C7257;color:#F8F5EC;border-radius:1.1rem;box-shadow:var(--shadow);border:2px solid #3F6048;position:relative;overflow:hidden}
   .hero::after{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n2)' opacity='0.05'/%3E%3C/svg%3E");pointer-events:none}
   .hero .pad{position:relative;z-index:1}
   .hero .verdict{font-family:'Noto Sans TC',sans-serif;font-weight:600;font-size:2rem;line-height:1.1;margin:.5rem 0 .1rem;color:#fff}
-  .hero .when{font-size:.95rem;color:#DDE3C4}
-  .hero .note{font-size:.84rem;color:#D3D9BC;line-height:1.55;margin-top:.3rem}
+  .hero .when{font-size:.95rem;color:#D6E5D1}
+  .hero .note{font-size:.84rem;color:#D6E5D1;line-height:1.55;margin-top:.3rem}
   .hero .note b{color:var(--honey-soft);font-weight:700}
   .stats{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1.1rem}
-  .stat{background:#ffffff14;border:1px solid #ffffff1f;border-radius:1rem;padding:.7rem .85rem}
-  .stat .k{font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:#BAC399;font-weight:700;margin-bottom:.15rem}
+  .stat{background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.12);border-radius:.7rem;padding:.7rem .85rem}
+  .stat .k{font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:#C1DEC4;font-weight:700;margin-bottom:.15rem}
   .stat .v{font-family:'Noto Sans TC',sans-serif;font-variant-numeric:tabular-nums;font-size:1.35rem;font-weight:600}
-  .stat .v small{font-size:.72rem;font-weight:500;color:#C7D0A4;margin-left:.15rem}
+  .stat .v small{font-size:.72rem;font-weight:500;color:#CAD6B4;margin-left:.15rem}
   .stat.up .v{color:var(--honey-soft)}
-  .badge{font-size:.62rem;font-weight:700;padding:.18rem .55rem;border-radius:999px;border:1px solid currentColor}
+  .badge{font-size:.62rem;font-weight:700;padding:.18rem .55rem;border-radius:999px;border:1.5px solid currentColor}
 
   /* ===== probability ===== */
   .sect-title{display:flex;align-items:center;gap:.5rem;font-size:.64rem;letter-spacing:.26em;text-transform:uppercase;color:var(--sage-deep);font-weight:700;margin:0 0 .2rem}
   .prob-row{display:grid;grid-template-columns:3.6rem 1fr 2.6rem;align-items:center;gap:.6rem;padding:.42rem 0}
   .prob-row .nm{font-weight:700;font-size:.88rem;color:var(--ink)}
-  .dots{display:flex;gap:3px}
-  .dots i{flex:1;height:7px;border-radius:3px;background:var(--paper-2)}
+  .dots{display:flex;gap:4px}
+  .dots i{flex:1;height:6px;border-radius:3px;background:var(--paper-2)}
   .dots i.on{background:var(--sage)}
   .dots i.lead{background:var(--sage-deep)}
   .prob-row .pc{text-align:right;font-family:'Noto Sans TC',sans-serif;font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink-soft)}
@@ -116,27 +147,27 @@
   .prob-row.dead{opacity:.4}
 
   /* ===== day cards（按日分組·上下午並排） ===== */
-  .daycard{padding:.75rem 0;border-bottom:1.5px dotted var(--line)}
+  .daycard{padding:.75rem 0;border-bottom:2px dotted var(--line)}
   .daycard:last-child{border-bottom:0}
   .daycard-head{display:flex;align-items:center;gap:.45rem;font-weight:700;font-size:.95rem;color:var(--ink);margin-bottom:.5rem}
   .daycard-head::before{content:"";width:.5rem;height:.5rem;border-radius:50%;background:var(--sage)}
   .daycard-cells{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
-  .cell{background:var(--card-2);border:1px solid transparent;border-radius:1rem;padding:.55rem .6rem;transition:.2s}
+  .cell{background:var(--card-2);border:1.5px solid var(--line);border-radius:.7rem;padding:.55rem .6rem;transition:.2s;box-shadow:2px 2px 0px rgba(98,100,86,0.03)}
   .cell-top{display:flex;align-items:center;gap:.45rem;margin-bottom:.4rem}
   .cell-top .ap{font-size:.74rem;font-weight:700;color:var(--ink-soft);white-space:nowrap}
-  .cell input{flex:1;width:100%;min-width:0;text-align:center;font-family:'Noto Sans TC',sans-serif;font-variant-numeric:tabular-nums;font-weight:600;font-size:1.05rem;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:.55rem;padding:.26rem 0;outline:none;transition:.2s}
+  .cell input{flex:1;width:100%;min-width:0;text-align:center;font-family:'Noto Sans TC',sans-serif;font-variant-numeric:tabular-nums;font-weight:600;font-size:1.05rem;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:.45rem;padding:.26rem 0;outline:none;transition:.2s;box-shadow:inset 1px 1px 2px rgba(98,100,86,0.05)}
   .cell input:focus{border-color:var(--sage);background:#fff}
   .cell input::placeholder{color:var(--ink-mute);opacity:.45;font-family:'Noto Sans TC'}
   .band-wrap{position:relative}
   .band{position:relative;height:1.15rem;display:flex;align-items:center}
-  .rail{position:absolute;left:0;right:0;height:5px;border-radius:99px;background:var(--paper-2);top:50%;transform:translateY(-50%)}
-  .fill{position:absolute;height:9px;border-radius:99px;top:50%;transform:translateY(-50%);background:linear-gradient(90deg,var(--sage-soft),var(--sage));transition:left .5s cubic-bezier(.4,0,.2,1),width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 3px #586a3633}
+  .rail{position:absolute;left:0;right:0;height:4px;border-radius:99px;background:var(--paper-2);top:50%;transform:translateY(-50%)}
+  .fill{position:absolute;height:8px;border-radius:99px;top:50%;transform:translateY(-50%);background:linear-gradient(90deg,var(--sage-soft),var(--sage));transition:left .5s cubic-bezier(.4,0,.2,1),width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 3px rgba(88,106,70,0.1)}
   .cost{position:absolute;top:0;bottom:0;width:0;border-left:1.5px dotted var(--clay);opacity:.55}
   .dot{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--ink);border:2px solid var(--card);top:50%;transform:translate(-50%,-50%);transition:left .5s cubic-bezier(.4,0,.2,1)}
   .rng{font-family:'Noto Sans TC',sans-serif;font-variant-numeric:tabular-nums;font-size:.66rem;color:var(--ink-mute);text-align:center;margin-top:2px;letter-spacing:.02em}
-  .cell.best{background:linear-gradient(180deg,#C0902f24,var(--card-2));border-color:var(--honey-soft)}
+  .cell.best{background:#FBF7EE !important;border-color:var(--honey) !important;box-shadow:2px 2px 0px rgba(213,154,47,0.15) !important}
   .cell.best .fill{background:linear-gradient(90deg,var(--honey-soft),var(--honey))}
-  .cell.best .ap::after{content:" ★";color:var(--honey)}
+  .cell.best .ap::after{content:" 🍃";color:var(--sage)} /* 經典大頭菜預測葉子標記 */
   .cell.best .rng{color:var(--honey)}
   .cell.done input{color:var(--sage-deep)}
   .chart-foot{display:flex;justify-content:space-between;align-items:center;font-size:.66rem;color:var(--ink-mute);margin-top:.7rem}
@@ -151,14 +182,14 @@
   .hidden{display:none!important}
 
   /* ===== modal (a11y: dialog) ===== */
-  .scrim{position:fixed;inset:0;background:#39402ecc;backdrop-filter:blur(3px);display:grid;place-items:center;padding:1.5rem;z-index:50}
-  .dialog{background:var(--card);border-radius:1.5rem;max-width:19rem;width:100%;padding:1.8rem;box-shadow:var(--shadow);text-align:center;animation:pop .22s ease-out}
+  .scrim{position:fixed;inset:0;background:rgba(94,97,80,0.5);backdrop-filter:blur(3px);display:grid;place-items:center;padding:1.5rem;z-index:50}
+  .dialog{background:var(--card);border-radius:1.1rem;max-width:19rem;width:100%;padding:1.8rem;border:2px solid var(--line);box-shadow:var(--shadow);text-align:center;animation:pop .22s ease-out}
   @keyframes pop{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
   .dialog h3{font-family:'Noto Sans TC',sans-serif;font-weight:600;font-size:1.2rem;margin:0 0 .3rem;color:var(--ink)}
   .dialog p{font-size:.82rem;color:var(--ink-soft);margin:0 0 1.3rem}
-  .btn{display:block;width:100%;padding:.85rem;border-radius:.9rem;border:0;font-family:inherit;font-weight:700;font-size:.92rem;cursor:pointer;margin-top:.6rem}
+  .btn{display:block;width:100%;padding:.85rem;border-radius:.7rem;border:0;font-family:inherit;font-weight:700;font-size:.92rem;cursor:pointer;margin-top:.6rem;box-shadow:2px 2px 0px rgba(98,100,86,0.06)}
   .btn-danger{background:var(--clay);color:#FBF6EA}
-  .btn-ghost{background:var(--card-2);color:var(--ink-soft);border:1px dashed var(--line)}
+  .btn-ghost{background:var(--card-2);color:var(--ink-soft);border:2px dashed var(--line)}
   footer{padding:1.6rem 0 2.4rem;text-align:center;font-size:.66rem;color:var(--ink-mute);line-height:1.7}
   footer a{color:var(--sage-deep)}
 </style>
@@ -208,7 +239,7 @@
     <div class="collapse-body" id="heroBody"><div class="pad">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem">
         <div class="verdict serif" id="heroVerdict">請輸入價格</div>
-        <span class="badge hidden" id="heroBadge" style="color:#C7D0A4;flex-shrink:0">分析中</span>
+        <span class="badge hidden" id="heroBadge" style="color:#CAD6B4;flex-shrink:0">分析中</span>
       </div>
       <div class="when" id="heroWhen">依你輸入的每日菜價，推算最佳脫手時段。</div>
       <p class="note" id="heroNote"></p>
@@ -275,9 +306,9 @@
 
 <script>
 /* ============================================================================
- *  PREDICTION ENGINE — ported verbatim from mikebryant/ac-nh-turnip-prices
- *  (js/predictions.js), MIT License. Reverse-engineered ACNH stalk-market model.
- *  https://github.com/mikebryant/ac-nh-turnip-prices
+ * PREDICTION ENGINE — ported verbatim from mikebryant/ac-nh-turnip-prices
+ * (js/predictions.js), MIT License. Reverse-engineered ACNH stalk-market model.
+ * https://github.com/mikebryant/ac-nh-turnip-prices
  * ==========================================================================*/
 const PATTERN = { FLUCTUATING: 0, LARGE_SPIKE: 1, DECREASING: 2, SMALL_SPIKE: 3 };
 const PROBABILITY_MATRIX = {
@@ -382,7 +413,7 @@ class Predictor{
 }
 
 /* ============================================================================
- *  APP — Kohlrabi Almanac UI
+ * APP — Kohlrabi Almanac UI
  * ==========================================================================*/
 const DAYS=['週一','週二','週三','週四','週五','週六'];
 const PNAME={0:'波型',1:'三期型',2:'遞減型',3:'四期型'};
@@ -592,7 +623,7 @@ function applyUIState(){
   ['hero','probCard'].forEach(id=>{const sec=document.getElementById(id);if(!sec)return;const collapsed=(id in st)?st[id]:defaults[id];sec.classList.toggle('collapsed',collapsed);const b=sec.querySelector('.sect-toggle');if(b)b.setAttribute('aria-expanded',String(!collapsed));});
 }
 
-/* ---- 變動提示 alert（脫手建議 / 走勢預判 有變就跳） ---- */
+/* ---- 變動提示 alert ---- */
 let _prevCat=null,_prevDom=null,_alertTimer=null;
 const VERDICT_ALERT={
   B:'⚠ 就是現在！最高點到了，立刻賣！',
@@ -601,7 +632,6 @@ const VERDICT_ALERT={
   E:'⚠ 轉為波型！高點隨機，見好就收',
   F:'⚠ 數據異常！查無吻合，請檢查輸入'
 };
-// 把結論歸成「類別」，同類別內時段微調不重複跳 alert
 function verdictCategory(vt,a,filled){
   if(filled===0) return null;
   if(vt==='查無吻合走勢') return 'F';
@@ -610,7 +640,7 @@ function verdictCategory(vt,a,filled){
   if(vt==='見好就收') return 'E';
   if(vt==='高點已過') return 'C';
   if(vt==='就是現在！'||vt==='現在就賣') return 'B';
-  return 'A'; // 其餘是時段（三期/四期巔峰目標）
+  return 'A';
 }
 function scheduleAlertCheck(vt,dom,a,filled){
   clearTimeout(_alertTimer);
@@ -649,7 +679,7 @@ function loadData(){
   try{const d=JSON.parse(raw);document.getElementById('buyPrice').value=d.buy||'';document.getElementById('lastWeekPattern').value=d.last||'unknown';(d.hist||[]).forEach((v,i)=>{const el=document.getElementById('p'+i);if(el)el.value=v;});}catch(e){}
 }
 
-/* ---- Reset modal (a11y: Esc / focus-trap / 還原焦點) ---- */
+/* ---- Reset modal ---- */
 let lastFocus=null;
 function showResetModal(){lastFocus=document.activeElement;const m=document.getElementById('resetModal');m.classList.remove('hidden');document.getElementById('dlgConfirm').focus();document.addEventListener('keydown',modalKeys);m.addEventListener('mousedown',backdropClose);}
 function hideResetModal(){const m=document.getElementById('resetModal');m.classList.add('hidden');document.removeEventListener('keydown',modalKeys);m.removeEventListener('mousedown',backdropClose);if(lastFocus)lastFocus.focus();}
