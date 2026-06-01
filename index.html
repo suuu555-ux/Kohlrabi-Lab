@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="https://image01.seesaawiki.jp/a/o/acnh-zh-game-info/6UP7vFYazP.jpeg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght=400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 
 <style>
   /* ===== 大頭菜圖鑑 · Botanical Field-Guide palette (taste: warm grayscale + 2 accents) ===== */
@@ -279,7 +279,10 @@
   <!-- Hero：脫手建議（可收合） -->
   <section class="hero collapsible collapsed reveal" id="hero" style="animation-delay:.1s">
     <button class="sect-toggle" aria-expanded="false" aria-controls="heroBody" onclick="toggleSection('hero')">
-      <span class="sect-toggle-label">脫手建議</span>
+      <span class="sect-toggle-label" style="display:inline-flex;align-items:center;gap:.35rem">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#CAD6B4;flex-shrink:0"><path d="M12 3a3 3 0 0 1 3 3c0 .8-.3 1.5-.8 2C16.8 9 19 11.5 19 15a6 6 0 0 1-6 6H11a6 6 0 0 1-6-6c0-3.5 2.2-6 4.8-7a3 3 0 0 1-.8-2 3 3 0 0 1 3-3z"/><path d="M8 8.5s2 1.5 4 1.5 4-1.5 4-1.5"/><path d="M12 12l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z"/></svg>
+        脫手建議
+      </span>
       <span class="sect-toggle-summary" id="heroSummary">請輸入價格</span>
       <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
     </button>
@@ -306,7 +309,10 @@
   <!-- 走勢預判（可收合） -->
   <section class="card collapsible collapsed reveal" id="probCard" style="animation-delay:.15s">
     <button class="sect-toggle" aria-expanded="false" aria-controls="probBody" onclick="toggleSection('probCard')">
-      <span class="sect-toggle-label">走勢預判</span>
+      <span class="sect-toggle-label" style="display:inline-flex;align-items:center;gap:.35rem">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--sage-deep);flex-shrink:0"><path d="M19 15A3.5 3.5 0 0 0 18 8h-1.26A5 5 0 1 0 7 10.5H6a3.5 3.5 0 0 0 0 7z"/><path d="M18 4l.3.7.7.3-.7.3-.3.7-.3-.7-.7-.3.7-.3zM12 2l.15.35.35.15-.35.15-.15.35-.15-.35-.35-.15.35-.15z"/></svg>
+        走勢預判
+      </span>
       <span class="sect-toggle-summary" id="probSummary">—</span>
       <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
     </button>
