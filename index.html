@@ -105,7 +105,7 @@
     transition:transform .4s cubic-bezier(.2,.85,.25,1), opacity .3s;
     opacity:0;
   }
-  #stickySummary.show{transform:translateX(-50%) translateY(0);opacity:1}
+  #stickySummary.show, #stickySummary.visible{transform:translateX(-50%) translateY(0);opacity:1}
 
   /* ===== inputs row (buy + last week) ===== */
   .field{display:flex;align-items:center;justify-content:space-between;gap:1rem}
@@ -580,7 +580,6 @@ function recompute() {
     updateHeroHeader('下週預報');
     const nd=PROBABILITY_MATRIX[dom]||PROBABILITY_MATRIX[0];
     const nT=[0,1,2,3].reduce((b,k)=>nd[k]>nd[b]?k:b,0);
-    textEl = document.getElementById('heroLabelText');
     verdict.textContent=`下週傾向${PNAME[nT]}`;
     when.textContent=`本週為「${PNAME[dom]}」→ 下週最可能「${PNAME[nT]}」(${Math.round(nd[nT]*100)}%)`;
     note.innerHTML=nd[1]>=0.4?'下週<b>大三期</b>機率偏高，<b>下個週日值得多進貨</b>。':(nd[2]>=0.2?`下週遞減型機率 ${Math.round(nd[2]*100)}%，<b>下個週日保守進貨</b>。`:`爆發型(三＋四)合計 ${Math.round((nd[1]+nd[3])*100)}%，<b>下個週日量力進貨</b>。`);
@@ -619,7 +618,7 @@ function recompute() {
         when.textContent=`${peakWord}（${bestSeen}）已過，剩餘不破成本`;
         note.innerHTML=`最高 <b>${bestSeen}</b>（${ps.d}${ps.ap}）已過，往後上限約 ${fmax}、低於成本 ${buyForScale}。有貨請<b>儘速脫手</b>。`;
       }else{
-        when.textContent=`${peakWord}（${bestSeen}）已過、目回落`;
+        when.textContent=`${peakWord}（${bestSeen}）已過、目前回落`;
         note.innerHTML=`錯過了 <b>${bestSeen}</b>（${ps.d}${ps.ap}）；目前仍高於成本，若沒賣請<b>儘速出手</b>，往後上限只剩 ~${fmax}。`;
       }
     }
@@ -658,33 +657,36 @@ function applyUIState(){
 }
 
 /* ---- 滾動偵測（當看不見主卡片時顯示頂端常駐膠囊） ---- */
+let isHeroVisible = true;
 function initObserver() {
   const hero = document.getElementById('hero');
-  const sticky = document.getElementById('stickySummary');
-  if (!hero || !sticky) return;
+  if (!hero) return;
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      const buyPrice = document.getElementById('buyPrice').value;
-      const history = readHistory();
-      const filled = history.filter(v=>!isNaN(v)).length;
-      
-      if (!entry.isIntersecting && (buyPrice || filled > 0)) {
-        sticky.classList.remove('hidden');
-        void sticky.offsetWidth;
-        sticky.classList.add('show');
-      } else {
-        sticky.classList.remove('show');
-        setTimeout(() => {
-          if (!sticky.classList.contains('show')) {
-            sticky.classList.add('hidden');
-          }
-        }, 400);
-      }
+      isHeroVisible = entry.isIntersecting;
+      updateStickyVisibility();
     });
   }, { threshold: 0 });
 
   observer.observe(hero);
+}
+
+function updateStickyVisibility() {
+  const stickyEl = document.getElementById('stickySummary');
+  if (!stickyEl) return;
+  const buyRaw = document.getElementById('buyPrice').value;
+  const history = readHistory();
+  const filled = history.filter(v=>!isNaN(v)).length;
+  const hasInputs = buyRaw !== '' || filled > 0;
+
+  if (!isHeroVisible && hasInputs) {
+    stickyEl.classList.remove('hidden');
+    void stickyEl.offsetWidth;
+    stickyEl.classList.add('show', 'visible');
+  } else {
+    stickyEl.classList.remove('show', 'visible');
+  }
 }
 
 function scrollToHero() {
