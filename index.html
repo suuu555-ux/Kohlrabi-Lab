@@ -12,7 +12,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
-
 <style>
   /* ===== 大頭菜圖鑑 · Botanical Field-Guide palette (taste: warm grayscale + 2 accents) ===== */
   :root{
@@ -26,7 +25,7 @@
     --sage-deep:#4C5F39; --sage-soft:#CAD6B4;
     --honey:#D59A2F; /* 暖橘黃 */
     --honey-soft:#F8E8C0;
-    --clay:#C4674E; /* 黏土橘紅 */
+    --clay:#A25B46; /* 溫潤的暖粘土色，降低飽和度，完美融入動森自然美學 */
     --shadow:3px 3px 0px rgba(98,100,86,0.1); /* 極具物理挺拔感的扁平硬投影，絕無髒黑大陰影 */
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -48,7 +47,7 @@
   input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   input[type=number]{-moz-appearance:textfield}
 
-  /* ===== STREAMING_CHUNK: Styling layout header and branding... ===== */
+  /* ===== header ===== */
   header{padding:2rem 0 1.1rem;display:flex;align-items:center;justify-content:space-between}
   .brand{display:flex;align-items:center;gap:.55rem}
   .brand-icon{width:2.6rem;height:2.6rem;border-radius:.7rem;object-fit:cover;box-shadow:var(--shadow);border:2px solid var(--line);flex-shrink:0}
@@ -57,14 +56,15 @@
   .icon-btn{appearance:none;border:2px dashed var(--line);background:var(--card);color:var(--ink-mute);width:2.4rem;height:2.4rem;border-radius:50%;display:grid;place-items:center;cursor:pointer;transition:.25s;box-shadow:var(--shadow)}
   .icon-btn:hover{color:var(--clay);border-color:var(--clay);transform:rotate(-90deg)}
 
-  /* ===== STREAMING_CHUNK: Styling cards and interactive collapsible blocks... ===== */
+  /* ===== cards (Nook Phone Flat Style) ===== */
   .card{background:var(--card);border-radius:1.1rem;box-shadow:var(--shadow);border:2px solid var(--line);position:relative;overflow:hidden}
   .card.framed::before{content:"";position:absolute;inset:.45rem;border:1.5px dashed var(--line);border-radius:.8rem;pointer-events:none}
   .pad{padding:1.4rem 1.5rem}
   .dotted-sep{border:0;border-top:2px dotted var(--line);margin:1.1rem 0}
 
+  /* ===== collapsible sections（可收合卡片 - 調整 Padding 達致完美對齊） ===== */
   .sect-toggle{width:100%;display:flex;align-items:center;gap:.7rem;background:none;border:0;cursor:pointer;font-family:inherit;color:inherit;text-align:left;padding:1.05rem 1.5rem;letter-spacing:.03em}
-  .sect-toggle-label{font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;font-weight:700;white-space:nowrap}
+  .sect-toggle-label{font-size:.64rem;letter-spacing:.26em;text-transform:uppercase;font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:.5rem}
   .sect-toggle-summary{flex:1;min-width:0;font-weight:700;font-size:.98rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .chev{flex-shrink:0;transition:transform .3s;opacity:.55}
   .collapsible:not(.collapsed) .chev{transform:rotate(180deg)}
@@ -77,39 +77,37 @@
   #probCard .sect-toggle-label{color:var(--sage-deep)}
   #probCard .sect-toggle-summary{color:var(--ink)}
 
-  /* ===== STREAMING_CHUNK: Styling the fully responsive and rounded alert bar... ===== */
+  /* ===== change alert（變動提示 - 補回圓角、全寬、無紅邊） ===== */
   #alertBar{
-    position:fixed;
-    top:0;
-    left:0;
-    right:0;
-    transform:translateY(-110%);
-    z-index:60;
-    width:100%;
-    max-width:none;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:.5rem;
-    background:var(--honey-soft);
-    color:#5C4314;
-    font-weight:700;
-    font-size:.92rem;
-    letter-spacing:.03em;
-    padding:1rem 1.1rem;
-    border-radius:0 0 1.1rem 1.1rem;
-    border:0;
-    border-bottom:3px solid var(--honey);
-    box-shadow:0 4px 12px rgba(98,100,86,0.08);
-    cursor:pointer;
+    position:fixed;top:0;left:0;right:0;z-index:60;
+    width:100%;max-width:none;
+    display:flex;align-items:center;justify-content:center;gap:.5rem;
+    background:var(--honey-soft);color:#5C4314;
+    font-weight:700;font-size:.92rem;letter-spacing:.03em;
+    padding:.8rem 1.1rem;
+    border-radius:0 0 1.1rem 1.1rem; /* 底部圓角補回 */
+    border-bottom:3px solid var(--honey); /* 暖黃下底線，無紅邊 */
+    box-shadow:var(--shadow);cursor:pointer;
     transition:transform .4s cubic-bezier(.2,.85,.25,1);
+    transform:translateY(-130%);
   }
-  #alertBar.show{
-    transform:translateY(0);
-  }
+  #alertBar.show{transform:translateY(0)}
   #alertBar .alert-msg{min-width:0;text-align:center}
 
-  /* ===== STREAMING_CHUNK: Styling user input forms and selection components... ===== */
+  /* ===== 常駐螢幕頂部的建議膠囊（原汁原味簡易樣式） ===== */
+  #stickySummary{
+    position:fixed;top:1rem;left:50%;transform:translateX(-50%) translateY(-150%);
+    z-index:55;width:calc(100% - 2.2rem);max-width:28rem;
+    background:#4C7257;color:#F8F5EC;font-weight:700;font-size:.92rem;
+    padding:.7rem 1.2rem;border-radius:999px;border:2px solid #3F6048;
+    box-shadow:var(--shadow);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:.5rem;
+    transition:transform .4s cubic-bezier(.2,.85,.25,1), opacity .3s;
+    opacity:0;
+  }
+  #stickySummary.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+  /* ===== inputs row (buy + last week) ===== */
   .field{display:flex;align-items:center;justify-content:space-between;gap:1rem}
   .field label{font-size:.86rem;font-weight:700;color:var(--ink-soft)}
   .buy-input{width:6rem;text-align:right;font-family:'Noto Sans TC',sans-serif;font-variant-numeric:tabular-nums;font-weight:600;font-size:1.7rem;color:var(--sage-deep);border:0;border-bottom:2px solid var(--line);background:transparent;outline:none;padding:.1rem .2rem}
@@ -118,7 +116,7 @@
   select.pick{appearance:none;background:var(--card-2);border:2px solid var(--line);border-radius:.7rem;padding:.5rem 2rem .5rem .9rem;font-family:inherit;font-size:.86rem;font-weight:700;color:var(--ink);cursor:pointer;box-shadow:2px 2px 0px rgba(98,100,86,0.04);
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%234C5F39' stroke-width='2'%3E%3Cpath d='M3 5l3 3 3-3'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .7rem center}
 
-  /* ===== STREAMING_CHUNK: Styling Nook-inspired hero section cards... ===== */
+  /* ===== hero ===== */
   .hero{background:#4C7257;color:#F8F5EC;border-radius:1.1rem;box-shadow:var(--shadow);border:2px solid #3F6048;position:relative;overflow:hidden}
   .hero::after{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n2)' opacity='0.05'/%3E%3C/svg%3E");pointer-events:none}
   .hero .pad{position:relative;z-index:1}
@@ -134,7 +132,7 @@
   .stat.up .v{color:var(--honey-soft)}
   .badge{font-size:.62rem;font-weight:700;padding:.18rem .55rem;border-radius:999px;border:1.5px solid currentColor}
 
-  /* ===== STREAMING_CHUNK: Styling probability distribution tables... ===== */
+  /* ===== probability ===== */
   .sect-title{display:flex;align-items:center;gap:.5rem;font-size:.64rem;letter-spacing:.26em;text-transform:uppercase;color:var(--sage-deep);font-weight:700;margin:0 0 .2rem}
   .prob-row{display:grid;grid-template-columns:3.6rem 1fr 2.6rem;align-items:center;gap:.6rem;padding:.42rem 0}
   .prob-row .nm{font-weight:700;font-size:.88rem;color:var(--ink)}
@@ -146,7 +144,7 @@
   .prob-row.top .nm{color:var(--sage-deep)}
   .prob-row.dead{opacity:.4}
 
-  /* ===== STREAMING_CHUNK: Styling day grid blocks and price input fields... ===== */
+  /* ===== day cards（按日分組·上下午並排） ===== */
   .daycard{padding:.75rem 0;border-bottom:2px dotted var(--line)}
   .daycard:last-child{border-bottom:0}
   .daycard-head{display:flex;align-items:center;gap:.45rem;font-weight:700;font-size:.95rem;color:var(--ink);margin-bottom:.5rem}
@@ -162,7 +160,8 @@
   .band{position:relative;height:1.15rem;display:flex;align-items:center}
   .rail{position:absolute;left:0;right:0;height:4px;border-radius:99px;background:var(--paper-2);top:50%;transform:translateY(-50%)}
   .fill{position:absolute;height:8px;border-radius:99px;top:50%;transform:translateY(-50%);background:linear-gradient(90deg,var(--sage-soft),var(--sage));transition:left .5s cubic-bezier(.4,0,.2,1),width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 3px rgba(88,106,70,0.1)}
-  .cost{position:absolute;top:0;bottom:0;width:0;border-left:1.5px dotted var(--clay);opacity:.55}
+  /* .cost: 實線 (solid) 的垂直分隔樣式 */
+  .cost{position:absolute;top:0;bottom:0;width:0;border-left:1.5px solid var(--clay);opacity:.65}
   .dot{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--ink);border:2px solid var(--card);top:50%;transform:translate(-50%,-50%);transition:left .5s cubic-bezier(.4,0,.2,1)}
   .rng{font-family:'Noto Sans TC',sans-serif;font-variant-numeric:tabular-nums;font-size:.66rem;color:var(--ink-mute);text-align:center;margin-top:2px;letter-spacing:.02em}
   .cell.best{background:#FBF7EE !important;border-color:var(--honey) !important;box-shadow:2px 2px 0px rgba(213,154,47,0.15) !important}
@@ -180,67 +179,26 @@
   @keyframes rise{to{opacity:1;transform:none}}
   .hidden{display:none!important}
 
-  /* ===== STREAMING_CHUNK: Styling dialog modals and action buttons... ===== */
+  /* ===== modal (a11y: dialog) ===== */
   .scrim{position:fixed;inset:0;background:rgba(94,97,80,0.5);backdrop-filter:blur(3px);display:grid;place-items:center;padding:1.5rem;z-index:50}
   .dialog{background:var(--card);border-radius:1.1rem;max-width:19rem;width:100%;padding:1.8rem;border:2px solid var(--line);box-shadow:var(--shadow);text-align:center;animation:pop .22s ease-out}
   @keyframes pop{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+  .dialog h3{font-family:'Noto Sans TC',sans-serif;font-weight:600;font-size:1.2rem;margin:0 0 .3rem;color:var(--ink)}
+  .dialog p{font-size:.82rem;color:var(--ink-soft);margin:0 0 1.3rem}
   .btn{display:block;width:100%;padding:.85rem;border-radius:.7rem;border:0;font-family:inherit;font-weight:700;font-size:.92rem;cursor:pointer;margin-top:.6rem;box-shadow:2px 2px 0px rgba(98,100,86,0.06)}
   .btn-danger{background:var(--clay);color:#FBF6EA}
   .btn-ghost{background:var(--card-2);color:var(--ink-soft);border:2px dashed var(--line)}
   footer{padding:1.6rem 0 2.4rem;text-align:center;font-size:.66rem;color:var(--ink-mute);line-height:1.7}
   footer a{color:var(--sage-deep)}
-
-  /* ===== STREAMING_CHUNK: Styling the sticky floating summary banner... ===== */
-  .sticky-summary-banner{
-    position:fixed;
-    top:1rem;
-    left:50%;
-    transform:translate(-50%, -150%);
-    background:#4C7257; /* 與「脫手建議」深綠色調高度一致 */
-    color:#F8F5EC;
-    padding:0.45rem 1.1rem;
-    border-radius:999px;
-    box-shadow:var(--shadow);
-    border:2px solid #3F6048;
-    font-weight:700;
-    font-size:.82rem;
-    letter-spacing:.03em;
-    z-index:45;
-    cursor:pointer;
-    transition:transform .4s cubic-bezier(.175, .885, .32, 1.275), opacity .3s;
-    opacity:0;
-    pointer-events:none;
-    white-space:nowrap;
-    display:flex;
-    align-items:center;
-    gap:.4rem;
-  }
-  .sticky-summary-banner.visible{
-    transform:translate(-50%, 0);
-    opacity:1;
-    pointer-events:auto;
-  }
-  .sticky-summary-banner::after{
-    content:"▲";
-    font-size:.6rem;
-    opacity:.7;
-    margin-left:.2rem;
-  }
-  .sticky-summary-banner:hover{
-    transform:translate(-50%, -2px) scale(1.02);
-    background:#588364;
-  }
-  .sticky-summary-banner:active{
-    transform:translate(-50%, 1px) scale(0.98);
-  }
 </style>
 </head>
 <body>
 <div id="alertBar" role="alert" aria-live="assertive" onclick="alertClick()"><span class="alert-msg"></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.55;flex-shrink:0"><path d="M9 6l6 6-6 6"/></svg></div>
 
-<!-- 常駐畫面頂端之「脫手建議」懸浮橫幅 -->
-<div id="stickySummary" class="sticky-summary-banner" role="button" aria-label="返回脫手建議卡片" onclick="scrollToHero()">
-  <span id="stickySummaryText">請輸入價格</span>
+<!-- 常駐螢幕頂部的建議膠囊（原汁原味簡易樣式） -->
+<div id="stickySummary" class="hidden" onclick="scrollToHero()">
+  <span id="stickySummaryText">---</span>
+  <span style="font-size: 0.75rem; margin-left: 4px; opacity: 0.85;">▲</span>
 </div>
 
 <div class="wrap">
@@ -276,18 +234,18 @@
     </div>
   </section>
 
-  <!-- Hero：脫手建議（可收合） -->
+  <!-- Hero：建議卡片（可收合） -->
   <section class="hero collapsible collapsed reveal" id="hero" style="animation-delay:.1s">
     <button class="sect-toggle" aria-expanded="false" aria-controls="heroBody" onclick="toggleSection('hero')">
       <span class="sect-toggle-label" style="display:inline-flex;align-items:center;gap:.35rem">
-          <span id="heroLabelIcon" style="display:inline-flex;align-items:center">
-            <!-- 星芒圖示 ✨ SVG -->
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-            </svg>
-          </span>
-          <span id="heroLabelText">脫手建議</span>
+        <span id="heroLabelIcon" style="display:inline-flex;align-items:center">
+          <!-- 星芒圖示 ✨ SVG -->
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+          </svg>
         </span>
+        <span id="heroLabelText">脫手建議</span>
+      </span>
       <span class="sect-toggle-summary" id="heroSummary">請輸入價格</span>
       <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
     </button>
@@ -343,7 +301,7 @@
         <div class="legend">
           <span><i class="sw" style="background:var(--sage)"></i>預測區間</span>
           <span><i class="sw" style="background:var(--honey)"></i>建議脫手</span>
-          <span><i class="sw" style="width:.2rem;height:.7rem;border-left:1.5px dotted var(--clay);border-radius:0"></i>成本</span>
+          <span><i class="sw animate-pulse" style="width:1.5px;height:.65rem;background:var(--clay);border-radius:0;margin-right:4px"></i>成本</span>
         </div>
         <span id="scaleHint" class="num"></span>
       </div>
@@ -395,8 +353,6 @@ class PDF{
   range_limit(range){let [start,end]=range;start=Math.max(start,this.min_value());end=Math.min(end,this.max_value());if(start>=end){this.value_start=this.value_end=0;this.prob=[];return 0;}start=Math.floor(start);end=Math.ceil(end);const si=start-this.value_start;const ei=end-this.value_start;for(let i=si;i<ei;i++){this.prob[i]*=range_intersect_length(this.range_of(i),range);}this.prob=this.prob.slice(si,ei);this.value_start=start;this.value_end=end;return this.normalize();}
   decay(rate_decay_min,rate_decay_max){rate_decay_min=Math.round(rate_decay_min);rate_decay_max=Math.round(rate_decay_max);const prefix=prefix_float_sum(this.prob);const max_X=this.prob.length;const max_Y=rate_decay_max-rate_decay_min;const newProb=Array(this.prob.length+max_Y);for(let i=0;i<newProb.length;i++){const left=Math.max(0,i-max_Y);const right=Math.min(max_X-1,i);const nums=[prefix[right+1][0],prefix[right+1][1],-prefix[left][0],-prefix[left][1]];if(left===i-max_Y){nums.push(-this.prob[left]/2);}if(right===i){nums.push(-this.prob[right]/2);}newProb[i]=float_sum(nums)/max_Y;}this.prob=newProb;this.value_start-=rate_decay_max;this.value_end-=rate_decay_min;}
 }
-
-/* ===== STREAMING_CHUNK: Porting pattern calculation and probability analysis... ===== */
 class Predictor{
   constructor(prices,first_buy,previous_pattern){this.fudge_factor=0;this.prices=prices;this.first_buy=first_buy;this.previous_pattern=previous_pattern;}
   intceil(val){return Math.trunc(val+0.99999);}
@@ -477,19 +433,15 @@ class Predictor{
 }
 
 /* ============================================================================
- * APP — Kohlrabi Almanac UI & Scroll Detection
+ * APP — Kohlrabi Almanac UI
  * ==========================================================================*/
-const DAYS=['週一','週二','週三','週四','週五','週六'];
+const DAYS=['週一', '週二', '週三', '週四', '週五', '週六'];
 const PNAME={0:'波型',1:'三期型',2:'遞減型',3:'四期型'};
 const PREV_MAP={fluctuating:0,large:1,decreasing:2,small:3};
-
-// 全域追蹤狀態：Hero 卡片是否在視窗內
-let isHeroVisible = true;
 
 function getSlot(i){return {d:DAYS[Math.floor(i/2)],ap:i%2?'下午':'上午'};}
 function readHistory(){const h=[];for(let i=0;i<12;i++){const el=document.getElementById('p'+i);h.push(el?parseInt(el.value):NaN);}return h;}
 
-/* ===== STREAMING_CHUNK: Instantiating lanes and dynamic price forms... ===== */
 function buildLanes(){
   const grid=document.getElementById('laneGrid');grid.innerHTML='';
   for(let d=0;d<6;d++){
@@ -520,23 +472,7 @@ function analyzeTurnips(buyPrice,history,lastKey){
   return {perSlot,probs,guaranteedMin:env.weekGuaranteedMinimum,weekMax:env.weekMax};
 }
 
-/* ===== STREAMING_CHUNK: Processing sticky header banner visibility checks... ===== */
-function updateStickyVisibility() {
-  const stickyEl = document.getElementById('stickySummary');
-  if (!stickyEl) return;
-  const buyRaw = document.getElementById('buyPrice').value;
-  const history = readHistory();
-  const filled = history.filter(v=>!isNaN(v)).length;
-  const hasInputs = buyRaw !== '' || filled > 0;
-
-  // 當 Hero 不可見且使用者已經填寫數據時，常駐顯示頂部橫幅
-  if (!isHeroVisible && hasInputs) {
-    stickyEl.classList.add('visible');
-  } else {
-    stickyEl.classList.remove('visible');
-  }
-}
-  // 完美修復並切換 dynamic SVG 的 Icon Helper (強制鎖定星芒 ✨ 圖示)
+// 完美修復並切換 dynamic SVG 的 Icon Helper (強制鎖定星芒 ✨ 圖示)
 function updateHeroHeader(text) {
   const textEl = document.getElementById('heroLabelText');
   const iconEl = document.getElementById('heroLabelIcon');
@@ -546,16 +482,7 @@ function updateHeroHeader(text) {
   }
 }
 
-
-function scrollToHero() {
-  const heroEl = document.getElementById('hero');
-  if (heroEl) {
-    heroEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-}
-
-/* ===== STREAMING_CHUNK: Computing algorithms and updating chart views... ===== */
-function recompute(){
+function recompute() {
   const buyRaw=document.getElementById('buyPrice').value;
   const buy=parseInt(buyRaw);const buyForScale=isNaN(buy)?100:buy;
   const lastKey=document.getElementById('lastWeekPattern').value;
@@ -568,7 +495,6 @@ function recompute(){
   document.getElementById('scaleHint').textContent='0 – '+scaleMax;
   const pct=v=>Math.max(0,Math.min(100,v/scaleMax*100));
 
-  // 找最佳脫手時段
   let bestIdx=-1, dom=-1;
   if(a){
     dom=[0,1,2,3].reduce((b,k)=>a.probs[k]>a.probs[b]?k:b,0);
@@ -614,18 +540,21 @@ function recompute(){
     probList.innerHTML='<p class="muted">目前輸入的菜價不符合任何已知走勢，請檢查是否輸入有誤。</p>';
   }
 
-  // ---- Hero ----
+  // ---- Hero 建議判定 ----
   const badge=document.getElementById('heroBadge'),verdict=document.getElementById('heroVerdict'),when=document.getElementById('heroWhen'),note=document.getElementById('heroNote'),sMin=document.getElementById('statMin'),sMax=document.getElementById('statMax'),sMinLabel=document.getElementById('statMinLabel'),sMaxLabel=document.getElementById('statMaxLabel');
-  const heroLabel=document.querySelector('#hero .sect-toggle-label');
-  badge.classList.add('hidden'); heroLabel.textContent='脫手建議';
+  
+  badge.classList.add('hidden'); 
+  updateHeroHeader('脫手建議'); // 預設狀態與圖示
+
   if(!a){
     badge.classList.remove('hidden');badge.style.color='#EBB9A6';badge.textContent='無法判定';verdict.textContent='查無吻合走勢';
     when.textContent='輸入的菜價超出所有可能範圍。';note.innerHTML='';sMin.textContent='—';sMax.textContent='—';
     setSummary('查無吻合走勢','—');
     scheduleAlertCheck('查無吻合走勢',-1,null,filled);
+    syncSticky('查無吻合走勢', 0);
     return saveData();
   }
-  
+
   if(filled>=12){
     const ent=history.filter(v=>!isNaN(v));
     sMinLabel.textContent='本週最低';sMin.innerHTML=Math.min(...ent)+'<small>鈴</small>';
@@ -634,9 +563,9 @@ function recompute(){
     sMinLabel.textContent='保底賣價';sMin.innerHTML=a.guaranteedMin+'<small>鈴</small>';
     sMaxLabel.textContent='最佳可達';sMax.innerHTML=a.weekMax+'<small>鈴</small>';
   }
-  
+
   if(filled===0){
-    heroLabel.textContent='購買建議';
+    updateHeroHeader('購買建議');
     badge.classList.remove('hidden');badge.style.color='#C7D0A4';badge.textContent='預測模式';
     if(lastKey==='unknown'){
       verdict.textContent='量力進貨';
@@ -648,9 +577,10 @@ function recompute(){
       note.innerHTML=a.probs[1]>=0.4?'本週<b>大三期</b>機率偏高，週日值得多進貨。':(a.probs[2]>=0.2?'本週<b>遞減型</b>風險稍高，進貨保守為宜。':'走勢偏平均，依鈴錢存量斟酌。');
     }
   }else if(filled>=12){
-    heroLabel.textContent='下週預報';
+    updateHeroHeader('下週預報');
     const nd=PROBABILITY_MATRIX[dom]||PROBABILITY_MATRIX[0];
     const nT=[0,1,2,3].reduce((b,k)=>nd[k]>nd[b]?k:b,0);
+    textEl = document.getElementById('heroLabelText');
     verdict.textContent=`下週傾向${PNAME[nT]}`;
     when.textContent=`本週為「${PNAME[dom]}」→ 下週最可能「${PNAME[nT]}」(${Math.round(nd[nT]*100)}%)`;
     note.innerHTML=nd[1]>=0.4?'下週<b>大三期</b>機率偏高，<b>下個週日值得多進貨</b>。':(nd[2]>=0.2?`下週遞減型機率 ${Math.round(nd[2]*100)}%，<b>下個週日保守進貨</b>。`:`爆發型(三＋四)合計 ${Math.round((nd[1]+nd[3])*100)}%，<b>下個週日量力進貨</b>。`);
@@ -676,10 +606,10 @@ function recompute(){
       }else{
         verdict.textContent='見好就收';
         when.textContent=`波型（隨機）· 上限可達 ${fmax} 鈴（≈${(fmax/buyForScale).toFixed(2)}x）`;
-        note.innerHTML=`未來仍<b>可能</b>再衝到 ~${fmax}（不保證時段）——看到接近上限就賣，別放掉眼前的高點。`;
+        note.innerHTML=`未來仍<b>可能</b>再衝到 ~${fmax}（不保證時段）——看到接近上限就賣，別放掉眼前的高點.`;
       }
     }else if(bestSeenIdx===lastIdx){
-      verdict.textContent=isSpike?'就是現在！':'現在就賣';
+      verdict.textContent=isSpike?'進場等待！':'現在就賣';
       when.textContent=`${peakWord} ${bestSeen} 鈴就在此刻`;
       note.innerHTML=`這是目前最高，之後${isSpike?'<b>會暴跌</b>':'多半下滑'}——<b>立刻賣出</b>。`;
     }else{
@@ -689,34 +619,30 @@ function recompute(){
         when.textContent=`${peakWord}（${bestSeen}）已過，剩餘不破成本`;
         note.innerHTML=`最高 <b>${bestSeen}</b>（${ps.d}${ps.ap}）已過，往後上限約 ${fmax}、低於成本 ${buyForScale}。有貨請<b>儘速脫手</b>。`;
       }else{
-        when.textContent=`${peakWord}（${bestSeen}）已過、目前回落`;
+        when.textContent=`${peakWord}（${bestSeen}）已過、目回落`;
         note.innerHTML=`錯過了 <b>${bestSeen}</b>（${ps.d}${ps.ap}）；目前仍高於成本，若沒賣請<b>儘速出手</b>，往後上限只剩 ~${fmax}。`;
       }
     }
   }
 
-  // 處理收合摘要與常駐橫幅內容
+  // ---- 摘要整理 ----
   let _sum;
   if(filled===0) _sum=verdict.textContent;
   else if(filled>=12){const nd=PROBABILITY_MATRIX[dom]||PROBABILITY_MATRIX[0];const nT=[0,1,2,3].reduce((b,k)=>nd[k]>nd[b]?k:b,0);_sum=PNAME[nT]+' '+Math.round(nd[nT]*100)+'%';}
   else _sum=verdict.textContent+' · '+a.weekMax+' - '+a.guaranteedMin;
   
   setSummary(_sum, a?(PNAME[dom]+' '+Math.round(a.probs[dom]*100)+'%'):'—');
-  
-  // 更新常駐懸浮橫幅文字
-  const stickyText = document.getElementById('stickySummaryText');
-  if (stickyText) {
-    stickyText.textContent = _sum;
-  }
-  
-  // 更新懸浮橫幅的顯隱狀態
-  updateStickyVisibility();
-
+  syncSticky(_sum, filled);
   scheduleAlertCheck(verdict.textContent, dom, a, filled);
   saveData();
 }
 
-/* ---- 摘要 / 收合 ---- */
+/* ---- 摘要同步常駐膠囊（極簡版：純文字 + 箭頭） ---- */
+function syncSticky(_sum, filled) {
+  const stickyText = document.getElementById('stickySummaryText');
+  if (stickyText) stickyText.textContent = _sum;
+}
+
 function setSummary(hero,prob){const h=document.getElementById('heroSummary');if(h)h.textContent=hero;const p=document.getElementById('probSummary');if(p)p.textContent=prob;}
 function toggleSection(id){
   const sec=document.getElementById(id);if(!sec)return;
@@ -727,8 +653,45 @@ function toggleSection(id){
 function applyUIState(){
   const st=JSON.parse(localStorage.getItem('kohlrabiUI')||'{}');
   let filled=0;for(let i=0;i<12;i++){const el=document.getElementById('p'+i);if(el&&el.value!=='')filled++;}
-  const defaults={hero:!(filled===0||filled>=12),probCard:true}; // 無資料(買)/收盤(預報)→ Hero 預設展開
+  const defaults={hero:!(filled===0||filled>=12),probCard:true};
   ['hero','probCard'].forEach(id=>{const sec=document.getElementById(id);if(!sec)return;const collapsed=(id in st)?st[id]:defaults[id];sec.classList.toggle('collapsed',collapsed);const b=sec.querySelector('.sect-toggle');if(b)b.setAttribute('aria-expanded',String(!collapsed));});
+}
+
+/* ---- 滾動偵測（當看不見主卡片時顯示頂端常駐膠囊） ---- */
+function initObserver() {
+  const hero = document.getElementById('hero');
+  const sticky = document.getElementById('stickySummary');
+  if (!hero || !sticky) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const buyPrice = document.getElementById('buyPrice').value;
+      const history = readHistory();
+      const filled = history.filter(v=>!isNaN(v)).length;
+      
+      if (!entry.isIntersecting && (buyPrice || filled > 0)) {
+        sticky.classList.remove('hidden');
+        void sticky.offsetWidth;
+        sticky.classList.add('show');
+      } else {
+        sticky.classList.remove('show');
+        setTimeout(() => {
+          if (!sticky.classList.contains('show')) {
+            sticky.classList.add('hidden');
+          }
+        }, 400);
+      }
+    });
+  }, { threshold: 0 });
+
+  observer.observe(hero);
+}
+
+function scrollToHero() {
+  const hero = document.getElementById('hero');
+  if (hero) {
+    hero.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 }
 
 /* ---- 變動提示 alert ---- */
@@ -798,28 +761,8 @@ function modalKeys(e){
 }
 function confirmReset(){localStorage.removeItem('kohlrabiV2');location.reload();}
 
-/* ===== STREAMING_CHUNK: Setting up Intersection Observer for Hero tracking... ===== */
-function initScrollObserver() {
-  const heroEl = document.getElementById('hero');
-  if (heroEl) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        isHeroVisible = entry.isIntersecting;
-        updateStickyVisibility();
-      });
-    }, { threshold: 0 });
-    observer.observe(heroEl);
-  }
-}
-
 /* ---- init ---- */
-window.addEventListener('load',()=>{
-  buildLanes();
-  loadData();
-  recompute();
-  applyUIState();
-  initScrollObserver();
-});
+window.addEventListener('load',()=>{buildLanes();loadData();recompute();applyUIState();initObserver();});
 </script>
 </body>
 </html>
