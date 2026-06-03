@@ -536,6 +536,16 @@ function updateStickyVisibility() {
     stickyEl.classList.remove('visible');
   }
 }
+  // 完美修復並切換 dynamic SVG 的 Icon Helper (強制鎖定星芒 ✨ 圖示)
+function updateHeroHeader(text) {
+  const textEl = document.getElementById('heroLabelText');
+  const iconEl = document.getElementById('heroLabelIcon');
+  if (textEl) textEl.textContent = text;
+  if (iconEl) {
+    iconEl.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>`;
+  }
+}
+
 
 function scrollToHero() {
   const heroEl = document.getElementById('hero');
